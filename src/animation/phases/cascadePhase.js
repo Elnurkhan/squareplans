@@ -42,6 +42,15 @@ export function compute(ctx) {
   const collapsedStep = 0.4
   const effectiveStep = lerp(desiredStep, collapsedStep, collapseT)
 
+  const dd = ctx.dragDiag || 0
+  const dirX = ctx.cascadeDirX || Math.cos(diagAngle)
+  const dirY = ctx.cascadeDirY || Math.sin(diagAngle)
+
+  // Keep drag offset during collapse, fade only during showcase transition
+  const dragFade = 1 - showcaseT
+  const anchorX = dd * dirX * dragFade
+  const anchorY = dd * dirY * dragFade
+
   const totalLen = (P9_COUNT - 1) * effectiveStep
   const startX = -totalLen / 2 * Math.cos(diagAngle)
   const startY = -totalLen / 2 * Math.sin(diagAngle)
@@ -52,10 +61,9 @@ export function compute(ctx) {
   for (let i = 0; i < P9_COUNT; i++) {
     const diagX = startX + i * effectiveStep * Math.cos(diagAngle)
     const diagY = startY + i * effectiveStep * Math.sin(diagAngle)
-    const dd = ctx.dragDiag || 0
 
-    const cascadeX = diagX + dd * (ctx.cascadeDirX || 0)
-    const cascadeY = diagY + dd * (ctx.cascadeDirY || 0)
+    const cascadeX = diagX + anchorX
+    const cascadeY = diagY + anchorY
 
     if (i === topIdx) {
       // Top card: move to center, flatten rotation, scale up

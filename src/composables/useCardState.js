@@ -187,11 +187,12 @@ export function useCardState() {
           else if (dragDiag < -maxDiag) dragDiag = -maxDiag + (dragDiag + maxDiag) * 0.35
         }
       } else {
-        // Phase 8: horizontal only
-        const spacing = 80
-        const cardScale = 3
+        // Phase 8: horizontal only — match spreadPhase spacing & scale
+        const spacing = 140
+        const cardScale = 5
         const cardW = (vw < 640 ? 32 : 40) * cardScale
-        const maxDragX = TOTAL_CARDS * spacing / 2 + cardW - vw * 0.15
+        const totalWidth = TOTAL_CARDS * spacing + cardW
+        const maxDragX = Math.max(0, totalWidth / 2 - vw * 0.3)
         if (!isDragging) {
           if (dragOffsetX > maxDragX) dragOffsetX += (maxDragX - dragOffsetX) * 0.12
           else if (dragOffsetX < -maxDragX) dragOffsetX += (-maxDragX - dragOffsetX) * 0.12
