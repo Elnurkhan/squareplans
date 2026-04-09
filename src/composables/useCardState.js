@@ -1,6 +1,8 @@
 import { COUNT, P9_COUNT, EASE, HOVER_EASE, TOTAL_CARDS, lerp } from '@/animation/constants'
 import { computeTargets } from '@/animation/phases'
 
+const base = import.meta.env.BASE_URL
+
 export function useCardState() {
   let currentProgress = 0
   let phase9 = false
@@ -62,25 +64,25 @@ export function useCardState() {
 
   // Real project photos distributed across 24 circle slots
   const projectPhotos = [
-    '/projects/afi/1.jpg',   '/projects/level/1.jpg',  '/projects/mosfilm/001.jpg', '/projects/n100/2.jpg',  '/projects/n35/1.jpg',
-    '/projects/afi/2.jpg',   '/projects/level/2.jpg',  '/projects/mosfilm/002.jpg', '/projects/n100/3.jpg',  '/projects/n35/2.jpg',
-    '/projects/afi/3.jpg',   '/projects/level/3.jpg',  '/projects/mosfilm/003.jpg', '/projects/n100/4.jpg',  '/projects/n35/3.jpg',
-    '/projects/afi/4.jpg',   '/projects/level/4.jpg',  '/projects/mosfilm/004.jpg', '/projects/n100/5.jpg',  '/projects/n35/4.jpg',
-    '/projects/afi/5.jpg',   '/projects/level/5.jpg',  '/projects/mosfilm/005.jpg', '/projects/n100/6.jpg',
-  ]
+    'projects/afi/1.jpg',   'projects/level/1.jpg',  'projects/mosfilm/001.jpg', 'projects/n100/2.jpg',  'projects/n35/1.jpg',
+    'projects/afi/2.jpg',   'projects/level/2.jpg',  'projects/mosfilm/002.jpg', 'projects/n100/3.jpg',  'projects/n35/2.jpg',
+    'projects/afi/3.jpg',   'projects/level/3.jpg',  'projects/mosfilm/003.jpg', 'projects/n100/4.jpg',  'projects/n35/3.jpg',
+    'projects/afi/4.jpg',   'projects/level/4.jpg',  'projects/mosfilm/004.jpg', 'projects/n100/5.jpg',  'projects/n35/4.jpg',
+    'projects/afi/5.jpg',   'projects/level/5.jpg',  'projects/mosfilm/005.jpg', 'projects/n100/6.jpg',
+  ].map(p => base + p)
   const thumbnails = Array.from({ length: COUNT }, (_, i) => ({
     src: projectPhotos[i % projectPhotos.length],
   }))
 
   // Phase 9 cascade: one hero photo per project + extras
   const p9Photos = [
-    '/projects/afi/1.jpg',   '/projects/afi/2.jpg',   '/projects/afi/3.jpg',   '/projects/afi/4.jpg',
-    '/projects/level/1.jpg', '/projects/level/2.jpg',  '/projects/level/3.jpg', '/projects/level/4.jpg',
-    '/projects/mosfilm/001.jpg', '/projects/mosfilm/002.jpg', '/projects/mosfilm/003.jpg', '/projects/mosfilm/004.jpg',
-    '/projects/n100/2.jpg',  '/projects/n100/3.jpg',  '/projects/n100/4.jpg',  '/projects/n100/5.jpg',
-    '/projects/n35/1.jpg',   '/projects/n35/2.jpg',   '/projects/n35/3.jpg',   '/projects/n35/4.jpg',
-    '/projects/afi/5.jpg',
-  ]
+    'projects/afi/1.jpg',   'projects/afi/2.jpg',   'projects/afi/3.jpg',   'projects/afi/4.jpg',
+    'projects/level/1.jpg', 'projects/level/2.jpg',  'projects/level/3.jpg', 'projects/level/4.jpg',
+    'projects/mosfilm/001.jpg', 'projects/mosfilm/002.jpg', 'projects/mosfilm/003.jpg', 'projects/mosfilm/004.jpg',
+    'projects/n100/2.jpg',  'projects/n100/3.jpg',  'projects/n100/4.jpg',  'projects/n100/5.jpg',
+    'projects/n35/1.jpg',   'projects/n35/2.jpg',   'projects/n35/3.jpg',   'projects/n35/4.jpg',
+    'projects/afi/5.jpg',
+  ].map(p => base + p)
   const p9Thumbnails = Array.from({ length: P9_COUNT }, (_, i) => ({
     src: p9Photos[i % p9Photos.length],
   }))

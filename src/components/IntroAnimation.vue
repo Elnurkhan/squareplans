@@ -36,7 +36,7 @@
       </div>
 
       <div class="intro-center" ref="centerEl">
-        <img class="intro-logo" src="/logo.svg" alt="SQUAREPLANS" />
+        <img class="intro-logo" :src="`${$base}logo.svg`" alt="SQUAREPLANS" />
         <span class="intro-sub">Листайте, чтобы узнать больше</span>
       </div>
 
