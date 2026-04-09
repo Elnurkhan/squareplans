@@ -25,7 +25,11 @@ const scrollLineEl = ref(null)
 provide('lenis', lenisRef)
 
 onMounted(() => {
-  lenis = new Lenis({ autoRaf: false })
+  lenis = new Lenis({
+    autoRaf: false,
+    wheelMultiplier: 1.8,
+    touchMultiplier: 3,
+  })
   lenis.on('scroll', (e) => {
     ScrollTrigger.update(e)
     if (scrollLineEl.value) {
