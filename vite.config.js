@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import compression from 'vite-plugin-compression'
 
 export default defineConfig({
+  base: '/squareplans/',
   plugins: [
     vue(),
     // Gzip precompression
