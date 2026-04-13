@@ -29,8 +29,8 @@ const translations = {
   // Bottom text
   'bottom.recent': { Ru: 'Недавние проекты', En: 'Recent projects' },
   'bottom.philosophy': {
-    Ru: 'Создаём не просто дизайн, а пространства и образы, которые становятся<br> частью жизни наших клиентов',
-    En: 'We create not just design, but spaces and images that become<br> part of our clients\' lives',
+    Ru: 'Создаём не просто дизайн, а\u00a0пространства<br> и\u00a0образы, которые становятся частью<br> жизни наших клиентов',
+    En: 'We create not just design, but\u00a0spaces<br> and\u00a0images that become part<br> of our clients\' lives',
   },
   'bottom.choose': { Ru: 'Выберите один', En: 'Choose one' },
 

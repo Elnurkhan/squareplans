@@ -14,7 +14,8 @@ export function compute(ctx) {
   const tiltZ7 = lerp(140, 0, spreadProgress)
   const wx7 = lerp(1, 1.4, spreadProgress)
   const scale7 = lerp(2.6, 5, spreadProgress)
-  const yShift = lerp(0, 0, spreadProgress)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024
+  const yShift = isMobile ? lerp(0, 90, spreadProgress) : 0
   const centerCard = Math.floor(TOTAL_CARDS / 2)
   const groupOffset = -centerCard * spacing
 

@@ -549,11 +549,11 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 50px;
-  height: 72px;
-  margin-left: -25px;
-  margin-top: -36px;
-  border-radius: 6px;
+  width: 150px;
+  height: 216px;
+  margin-left: -75px;
+  margin-top: -108px;
+  border-radius: 18px;
   transform-style: preserve-3d;
   backface-visibility: visible;
   outline: 1px solid transparent;
@@ -681,6 +681,10 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
+@media (max-width: 1023px) {
+  .intro-bottom { bottom: 52px; }
+}
+
 .bottom-title-stack {
   position: relative;
   margin-bottom: 7px;
@@ -777,11 +781,11 @@ onBeforeUnmount(() => {
 /* ── Responsive ── */
 @media (max-width: 1023px) {
   .thumb {
-    width: 40px;
-    height: 58px;
-    margin-left: -20px;
-    margin-top: -29px;
-    border-radius: 5px;
+    width: 120px;
+    height: 174px;
+    margin-left: -60px;
+    margin-top: -87px;
+    border-radius: 15px;
   }
 }
 
@@ -799,11 +803,11 @@ onBeforeUnmount(() => {
   }
 
   .thumb {
-    width: 32px;
-    height: 46px;
-    margin-left: -16px;
-    margin-top: -23px;
-    border-radius: 4px;
+    width: 96px;
+    height: 138px;
+    margin-left: -48px;
+    margin-top: -69px;
+    border-radius: 12px;
   }
 }
 </style>

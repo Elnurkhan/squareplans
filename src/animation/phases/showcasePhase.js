@@ -16,7 +16,11 @@ export function compute(ctx) {
   const startX = -totalLen / 2 * Math.cos(diagAngle)
   const startY = -totalLen / 2 * Math.sin(diagAngle)
 
-  const showcaseScale = lerp(cardScale, cardScale * 2.6, showcaseT)
+  const isMob = vw < 1024
+  const showcaseMaxScale = isMob
+    ? Math.min(vw * 0.95, vh * 0.55) / 50
+    : cardScale * 2.6
+  const showcaseScale = lerp(cardScale, showcaseMaxScale, showcaseT)
 
   for (let i = 0; i < P9_COUNT; i++) {
     const diagX = startX + i * collapsedStep * Math.cos(diagAngle)

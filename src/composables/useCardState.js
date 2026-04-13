@@ -279,7 +279,8 @@ export function useCardState() {
       const baseO = c.o > 0.95 ? 1 : Math.max(0, c.o)
       const finalO = baseO * (1 - p8Dim[i]) * (1 - glFade)
 
-      els[i].style.transform = `translate3d(${c.x}px, ${c.y + p8Hover[i] * -40}px, ${c.z + hz}px) perspective(1500px) rotateX(${c.rx}deg) rotateY(${c.ry}deg) rotateZ(${c.r}deg) rotateY(${hoverSpin[i]}deg) scale(${c.s}) scaleX(${c.wx})`
+      const ds = c.s / 3
+      els[i].style.transform = `translate3d(${c.x}px, ${c.y + p8Hover[i] * -40}px, ${c.z + hz}px) perspective(1500px) rotateX(${c.rx}deg) rotateY(${c.ry}deg) rotateZ(${c.r}deg) rotateY(${hoverSpin[i]}deg) scale(${ds}) scaleX(${c.wx})`
       els[i].style.opacity = String(finalO)
     }
 
@@ -353,7 +354,7 @@ export function useCardState() {
       p9Hover[i] += (hoverTarget - p9Hover[i]) * HOVER_EASE
       const hx = p9Hover[i] * 40
 
-      p9ThumbEls[i].style.transform = `translate3d(${c.x}px, ${c.y}px, ${c.z}px) rotateX(${c.rx}deg) rotateY(${c.ry}deg) rotateZ(${c.r}deg) translateX(${hx}px) scale(${c.s})`
+      p9ThumbEls[i].style.transform = `translate3d(${c.x}px, ${c.y}px, ${c.z}px) rotateX(${c.rx}deg) rotateY(${c.ry}deg) rotateZ(${c.r}deg) translateX(${hx}px) scale(${c.s / 3})`
       const p9o = Math.max(0, c.o)
       p9ThumbEls[i].style.opacity = String(p9o)
       p9ThumbEls[i].style.zIndex = String(P9_COUNT - i)

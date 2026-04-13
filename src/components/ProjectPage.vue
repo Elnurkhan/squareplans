@@ -48,7 +48,7 @@
         {{ t('pp.mission.quote') }}
       </h2>
       <div class="pp-mission-photo rv rv-img" style="transition-delay:.2s">
-        <img :src="`${$base}projects/n100/2.jpg`" alt="" loading="lazy" />
+        <img :src="`${$base}projects/n100/7.jpg`" alt="" loading="lazy" />
       </div>
     </section>
 
@@ -328,7 +328,7 @@ defineExpose({ rootEl })
   font-weight: 300;
   line-height: 1.85;
   letter-spacing: 0.02em;
-  color: rgba(26, 26, 26, 0.5);
+  color: #1a1a1a;
   margin: 0;
 }
 
@@ -398,7 +398,7 @@ defineExpose({ rootEl })
   font-weight: 300;
   font-style: italic;
   letter-spacing: 0.02em;
-  color: rgba(26, 26, 26, 0.6);
+  color: #1a1a1a;
   margin: 0;
 }
 
@@ -407,14 +407,13 @@ defineExpose({ rootEl })
   font-weight: 300;
   line-height: 1.85;
   letter-spacing: 0.02em;
-  color: rgba(26, 26, 26, 0.5);
+  color: #1a1a1a;
   margin: 0;
 }
 
 .pp-ae-photo {
   margin-left: calc(100% * 2 / 3);
   width: calc(100% / 3);
-  border-radius: 8px;
   overflow: hidden;
 }
 
@@ -437,9 +436,10 @@ defineExpose({ rootEl })
   display: block;
   font-size: 0.6rem;
   font-weight: 400;
-  letter-spacing: 0.35em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: #1a1a1a;
+  font-style: italic;
   margin-bottom: 1.5rem;
 }
 
@@ -455,14 +455,15 @@ defineExpose({ rootEl })
 }
 
 .pp-mission-photo {
-  max-width: 440px;
+  max-width: 220px;
+  aspect-ratio: 4 / 5;
   margin: 0 auto;
-  border-radius: 8px;
   overflow: hidden;
 }
 
 .pp-mission-photo img {
   width: 100%;
+  height: 100%;
   display: block;
   object-fit: cover;
 }
@@ -927,6 +928,16 @@ section.pp-bleed img {
 
 @media (max-width: 768px) {
   .pp {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .pp-body {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .pp-footer {
     padding-left: 15px;
     padding-right: 15px;
   }
@@ -934,7 +945,7 @@ section.pp-bleed img {
   .pp-po-header {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 0.6rem;
     padding: 0 1rem;
   }
 
@@ -943,9 +954,10 @@ section.pp-bleed img {
   }
 
   .pp-po-left {
+    width: 100%;
     display: flex;
     align-items: baseline;
-    gap: 1.5rem;
+    justify-content: space-between;
   }
 
   .pp-po-gallery {
@@ -955,7 +967,7 @@ section.pp-bleed img {
   .pp-ae-text {
     grid-template-columns: 1fr;
     gap: 1.5rem;
-    padding: 0 var(--pad);
+    padding: 0;
   }
 
   .pp-ae-title {
@@ -990,6 +1002,12 @@ section.pp-bleed img {
     align-items: flex-start;
     flex-direction: row;
     justify-content: space-between;
+  }
+
+  .pp-banner-text {
+    font-size: 1.2rem;
+    left: 1.2rem;
+    bottom: 3rem;
   }
 }
 

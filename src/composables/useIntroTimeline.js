@@ -29,7 +29,7 @@ export function useIntroTimeline() {
     const vh = window.innerHeight
     const circleR = getCircleR(vw, vh)
 
-    gsap.set(els, { opacity: 0, scale: 1, x: 0, y: 0, rotation: 0 })
+    gsap.set(els, { opacity: 0, scale: 1 / 3, x: 0, y: 0, rotation: 0 })
     gsap.set(headerEl, { opacity: 0, y: -30 })
     gsap.set(centerEl, { opacity: 0, scale: 0.85, y: 20 })
     gsap.set(bottomEl, { opacity: 0, y: 30 })
@@ -66,7 +66,7 @@ export function useIntroTimeline() {
           cur[i].x = Math.cos(angle) * circleR
           cur[i].y = Math.sin(angle) * circleR
           cur[i].r = (angle * 180 / Math.PI) + 90
-          cur[i].s = 1; cur[i].wx = 1; cur[i].o = 1
+          cur[i].s = 1; cur[i].wx = 1; cur[i].o = 1  // s=1 is divided by 3 in tick
           cur[i].z = 0; cur[i].rx = 0; cur[i].ry = 0
         }
 
@@ -98,7 +98,7 @@ export function useIntroTimeline() {
       // Mobile/tablet: appear as a flat centered stack (scaled up)
       els.forEach((el, i) => {
         masterTl.to(el, {
-          opacity: 1, scale: 1.8, x: 0, y: 0,
+          opacity: 1, scale: 1.8 / 3, x: 0, y: 0,
           rotation: 0,
           duration: 0.5, ease: 'power2.out',
         }, 0.6 + i * 0.02)
@@ -107,7 +107,7 @@ export function useIntroTimeline() {
       // Spread from stack into circle (scale down)
       els.forEach((el, i) => {
         masterTl.to(el, {
-          scale: 0.75, x: circle[i].x, y: circle[i].y, rotation: circle[i].r,
+          scale: 0.75 / 3, x: circle[i].x, y: circle[i].y, rotation: circle[i].r,
           duration: 1.2, ease: 'power2.inOut',
         }, 1.4 + (i / COUNT) * 0.15)
       })
@@ -115,7 +115,7 @@ export function useIntroTimeline() {
       // Smoothly scale up in circle
       els.forEach((el, i) => {
         masterTl.to(el, {
-          scale: 1, duration: 1.0, ease: 'power2.out',
+          scale: 1 / 3, duration: 1.0, ease: 'power2.out',
         }, 2.8 + (i / COUNT) * 0.1)
       })
 

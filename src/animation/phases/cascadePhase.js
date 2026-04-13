@@ -13,7 +13,7 @@ export function getCascadeLayout(vw, vh) {
     desiredStep = (refDiag - pad * 2) / (P9_COUNT - 1) * 0.9
     const desktopScale = Math.min(8, desiredStep / 70 * 1.8)
     const cssCardW = vw < 640 ? 32 : 40
-    cardScale = desktopScale * (50 / cssCardW)
+    cardScale = desktopScale * (50 / cssCardW) * 1.3
   } else {
     diagAngle = -Math.atan2(vh, vw) * .9
     const screenDiag = Math.sqrt(vw * vw + vh * vh)
@@ -67,7 +67,10 @@ export function compute(ctx) {
 
     if (i === topIdx) {
       // Top card: move to center, flatten rotation, scale up
-      const showcaseScale = Math.min(vw * 0.45, vh * 0.55) / 50
+      const isMob = vw < 1024
+      const showcaseScale = isMob
+        ? Math.min(vw * 0.95, vh * 0.55) / 50
+        : Math.min(vw * 0.45, vh * 0.55) / 50
       p9Tgt[i].x = lerp(cascadeX, 0, showcaseT)
       p9Tgt[i].y = lerp(cascadeY, 0, showcaseT)
       p9Tgt[i].z = lerp(i * collapseT * 2, 0, showcaseT)
