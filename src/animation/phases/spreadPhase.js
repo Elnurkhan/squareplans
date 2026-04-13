@@ -4,7 +4,8 @@ export function compute(ctx) {
   const { progress, tgt, tgtText, tgtBottom, cur, centerIdx, halfCount, els, mouse, phase9 } = ctx
 
   const isPhase7 = progress <= 0.96
-  const spreadProgress = isPhase7 ? (progress - 0.92) / 0.04 : 1
+  const rawSpread = isPhase7 ? (progress - 0.92) / 0.04 : 1
+  const spreadProgress = rawSpread * rawSpread * (3 - 2 * rawSpread) // smoothstep
   const spacing = lerp(14, 140, spreadProgress)
 
   const tiltRX7 = lerp(-24, -20, spreadProgress)
