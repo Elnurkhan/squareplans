@@ -207,7 +207,7 @@ function onTouchMove(e) {
     }
     // Swipe down → go back to cascade
     if (dy > 20) {
-      cards.scrollCascade(dy * -0.15)
+      cards.scrollCascade(dy * -0.4)
       if (!cards.isInPhase9()) exitPhase9WithLenis()
       e.preventDefault()
       return
@@ -225,7 +225,7 @@ function onTouchMove(e) {
     }
     if (touchLocked === 'v9') {
       const dy = t.clientY - touchStartY
-      cards.scrollCascade(-dy * 0.15)
+      cards.scrollCascade(-dy * 0.4)
       if (!cards.isInPhase9()) exitPhase9WithLenis()
       e.preventDefault()
       return
