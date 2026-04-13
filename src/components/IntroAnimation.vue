@@ -1,10 +1,10 @@
 <template>
   <header class="intro-header" ref="headerEl">
     <nav class="intro-nav">
-      <a href="#" :class="{ active: activeNav === 0 }">Интро</a>
-      <a href="#" :class="{ active: activeNav === 1 }">Проекты</a>
-      <a href="#" :class="{ active: activeNav === 2 }">О нас</a>
-      <a href="#" :class="{ active: activeNav === 3 }">Контакты</a>
+      <a href="#" :class="{ active: activeNav === 0 }">{{ t('nav.intro') }}</a>
+      <a href="#" :class="{ active: activeNav === 1 }">{{ t('nav.projects') }}</a>
+      <a href="#" :class="{ active: activeNav === 2 }">{{ t('nav.about') }}</a>
+      <a href="#" :class="{ active: activeNav === 3 }">{{ t('nav.contacts') }}</a>
     </nav>
   </header>
 
@@ -37,7 +37,7 @@
 
       <div class="intro-center" ref="centerEl">
         <img class="intro-logo" :src="`${$base}logo.svg`" alt="SQUAREPLANS" />
-        <span class="intro-sub">Листайте, чтобы узнать больше</span>
+        <span class="intro-sub">{{ t('intro.scroll') }}</span>
       </div>
 
       <div class="intro-arc-text" ref="arcTextEl">
@@ -51,10 +51,10 @@
 
       <div class="intro-bottom" ref="bottomEl">
         <div class="bottom-title-stack">
-          <div class="bottom-title bottom-title-project">Недавние проекты</div>
-          <div class="bottom-title bottom-title-philosophy">Создаём не просто дизайн, а пространства и образы, которые становятся<br> частью жизни наших клиентов</div>
+          <div class="bottom-title bottom-title-project">{{ t('bottom.recent') }}</div>
+          <div class="bottom-title bottom-title-philosophy" v-html="t('bottom.philosophy')"></div>
         </div>
-        <div class="bottom-sub">Выберите один</div>
+        <div class="bottom-sub">{{ t('bottom.choose') }}</div>
       </div>
 
     </div>
@@ -74,11 +74,12 @@
 </template>
 
 <script setup>
-import { ref, inject, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, inject, onMounted, onBeforeUnmount } from 'vue'
 import gsap from 'gsap'
 import { useMouseTracking } from '@/composables/useMouseTracking'
 import { useIntroTimeline } from '@/composables/useIntroTimeline'
 import { useCardState } from '@/composables/useCardState'
+import { useI18n } from '@/composables/useI18n'
 import PhotoLightbox from '@/components/PhotoLightbox.vue'
 import ProjectPage from '@/components/ProjectPage.vue'
 import { GlassCardLayer } from '@/webgl/GlassCardLayer'
@@ -98,11 +99,13 @@ const bottomEl = ref(null)
 const showcaseInfoEl = ref(null)
 const afterIntroEl = ref(null)
 
-const arcLines = [
-  ['ИНДИВИДУАЛЬНЫЕ', 'ДИЗАЙН-ПРОЕКТЫ', 'ДЛЯ', 'ЖИЛЫХ'],
-  ['И', 'КОММЕРЧЕСКИХ', 'ПОМЕЩЕНИЙ', 'ПОД', 'КЛЮЧ.'],
-  ['АВТОРСКИЙ', 'НАДЗОР'],
-]
+const { t } = useI18n()
+
+const arcLines = computed(() => [
+  t('arc.line1'),
+  t('arc.line2'),
+  t('arc.line3'),
+])
 
 const mouseTracking = useMouseTracking()
 const timeline = useIntroTimeline()

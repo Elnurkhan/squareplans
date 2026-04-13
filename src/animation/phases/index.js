@@ -39,7 +39,7 @@ export function computeTargets(progress, ctx) {
   const centerAngle = (centerIdx / COUNT) * Math.PI * 2 + finalRotOffset
   const arcCY = radiusEnd
   const arcRadius = radiusEnd
-  const arcScale = isMobile ? 1.5 : 3
+  const arcScale = isMobile ? 2.2 : 3
 
   Object.assign(phaseCtx, { centerIdx, halfCount, angularStep, centerAngle, arcCY, arcRadius, arcScale })
 

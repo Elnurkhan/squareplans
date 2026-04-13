@@ -6,15 +6,11 @@
     <section class="pp-projects-overview" ref="poSectionEl">
       <div class="pp-po-header">
         <div class="pp-po-left">
-          <h2 class="pp-po-title">Проекты</h2>
+          <h2 class="pp-po-title">{{ t('pp.projects') }}</h2>
           <span class="pp-po-count" ref="countEl">0+</span>
         </div>
         <div class="pp-po-desc">
-          <p>
-            Наши проекты&nbsp;&mdash; это&nbsp;всегда индивидуальный подход и&nbsp;работа
-            без&nbsp;шаблонов. Поэтому нас&nbsp;выбирают клиенты, которые
-            готовы доверить нам&nbsp;своё пространство, стиль и&nbsp;время.
-          </p>
+          <p>{{ t('pp.projects.desc') }}</p>
         </div>
       </div>
       <div class="pp-po-gallery">
@@ -34,14 +30,10 @@
     <section class="pp-aesthetics">
       <div class="pp-ae-text">
         <div class="pp-ae-title rv">
-          <p>Эстетика и&nbsp;безупречный результат</p>
+          <p>{{ t('pp.aesthetics.title') }}</p>
         </div>
         <div class="pp-ae-desc rv" style="transition-delay:.15s">
-          <p>
-            Наша работа&nbsp;&mdash; это&nbsp;всегда сложная реализация
-            и&nbsp;проекты высокого уровня, где&nbsp;каждая деталь имеет
-            значение.
-          </p>
+          <p>{{ t('pp.aesthetics.desc') }}</p>
         </div>
       </div>
       <div class="pp-ae-photo rv rv-img" style="transition-delay:.2s">
@@ -51,10 +43,9 @@
 
     <!-- ── Mission ── -->
     <section class="pp-mission">
-      <span class="pp-mission-label rv">Миссия</span>
+      <span class="pp-mission-label rv">{{ t('pp.mission') }}</span>
       <h2 class="pp-mission-quote rv" style="transition-delay:.1s">
-        Воплощать идеи в&nbsp;реальность так, чтобы результат
-        превзошёл ожидания
+        {{ t('pp.mission.quote') }}
       </h2>
       <div class="pp-mission-photo rv rv-img" style="transition-delay:.2s">
         <img :src="`${$base}projects/n100/2.jpg`" alt="" loading="lazy" />
@@ -67,10 +58,7 @@
     <section class="pp-banner" ref="bannerEl">
       <div class="pp-banner-img rv rv-img" ref="bannerImgEl">
         <img :src="`${$base}projects/afi/3.jpg`" alt="" loading="lazy" />
-        <p class="pp-banner-text">
-          Эксклюзивность, внимание к&nbsp;деталям<br>
-          и&nbsp;безупречный сервис.
-        </p>
+        <p class="pp-banner-text" v-html="t('pp.banner.text')"></p>
       </div>
     </section>
 
@@ -79,7 +67,7 @@
       <div class="pp-footer-inner">
         <div class="pp-footer-col">
           <img class="pp-footer-brand" :src="`${$base}logo.svg`" alt="SQUAREPLANS" />
-          <span class="pp-footer-copy">&copy;2026. Все права защищены</span>
+          <span class="pp-footer-copy">{{ t('pp.footer.copy') }}</span>
         </div>
         <div class="pp-footer-col">
           <a href="https://www.instagram.com/squareplans?igsh=MXRjbTBoaGp6d2ZpZw==">Instagram</a>
@@ -87,8 +75,14 @@
           <a href="#">squareplans@gmail.com</a>
         </div>
         <div class="pp-footer-col pp-footer-col-right">
-          <span class="pp-footer-lang">Ru ↓</span>
-          <span class="pp-footer-dev">Разработка сайта</span>
+          <div class="pp-footer-lang" @click="langOpen = !langOpen">
+            <span class="pp-footer-lang-current">{{ lang }} ↓</span>
+            <ul v-if="langOpen" class="pp-footer-lang-menu">
+              <li @click.stop="setLang('Ru'); langOpen = false">Ru</li>
+              <li @click.stop="setLang('En'); langOpen = false">En</li>
+            </ul>
+          </div>
+          <span class="pp-footer-dev">{{ t('pp.footer.dev') }}</span>
         </div>
       </div>
     </footer>
@@ -100,9 +94,12 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useI18n } from '@/composables/useI18n'
 
 gsap.registerPlugin(ScrollTrigger)
 
+const { lang, t, setLang } = useI18n()
+const langOpen = ref(false)
 const rootEl = ref(null)
 const countEl = ref(null)
 const poCenterImg = ref(null)
@@ -450,7 +447,7 @@ defineExpose({ rootEl })
 
   font-weight: 300;
   font-size: clamp(1.3rem, 2.8vw, 2rem);
-  line-height: 1.6;
+  line-height: 1.3;
   letter-spacing: 0.01em;
   color: #1a1a1a;
   max-width: 680px;
@@ -803,10 +800,9 @@ section.pp-bleed img {
 
   font-weight: 300;
   font-size: clamp(1.4rem, 3vw, 2.6rem);
-  line-height: 1.4;
+  line-height: 1.2;
   color: #fafafa;
   margin: 0;
-  max-width: 600px;
 }
 
 /* ══════════════════
@@ -833,7 +829,7 @@ section.pp-bleed img {
 }
 
 .pp-footer-col a {
-  font-size: 0.72rem;
+  font-size: 0.85rem;
   font-weight: 300;
   color: rgba(26, 26, 26, 0.5);
   text-decoration: none;
@@ -850,7 +846,7 @@ section.pp-bleed img {
 }
 
 .pp-footer-copy {
-  font-size: 0.65rem;
+  font-size: 0.78rem;
   font-weight: 300;
   color: rgba(26, 26, 26, 0.35);
 }
@@ -862,13 +858,50 @@ section.pp-bleed img {
 }
 
 .pp-footer-lang {
-  font-size: 0.72rem;
+  position: relative;
+  font-size: 0.85rem;
   font-weight: 300;
   color: rgba(26, 26, 26, 0.5);
+  cursor: pointer;
+  user-select: none;
+}
+
+.pp-footer-lang-current {
+  transition: color 0.3s;
+}
+
+.pp-footer-lang-current:hover {
+  color: #1a1a1a;
+}
+
+.pp-footer-lang-menu {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  list-style: none;
+  margin: 0 0 0.4rem;
+  padding: 0.3rem 0;
+  background: #fafafa;
+  border: 1px solid rgba(26, 26, 26, 0.1);
+  border-radius: 4px;
+  min-width: 60px;
+}
+
+.pp-footer-lang-menu li {
+  padding: 0.3rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 300;
+  color: rgba(26, 26, 26, 0.5);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.pp-footer-lang-menu li:hover {
+  color: #1a1a1a;
 }
 
 .pp-footer-dev {
-  font-size: 0.65rem;
+  font-size: 0.78rem;
   font-weight: 300;
   color: rgba(26, 26, 26, 0.35);
 }

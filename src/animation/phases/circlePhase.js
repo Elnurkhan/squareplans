@@ -21,12 +21,12 @@ export function compute(ctx) {
     const p = (progress - 0.15) / 0.15
     centerYOffset = lerp(midY, endY, p)
     radius = lerp(circleR, radiusEnd, p)
-    scale = lerp(1, isMobile ? 1.2 : 2.5, p)
+    scale = lerp(1, isMobile ? 1.5 : 2.5, p)
   } else {
     const p = (progress - 0.3) / 0.25
     centerYOffset = endY
     radius = radiusEnd
-    scale = lerp(isMobile ? 1.8 : 2.5, isMobile ? 2.1 : 3, Math.min(1, p))
+    scale = lerp(isMobile ? 1.5 : 2.5, isMobile ? 2.2 : 3, Math.min(1, p))
     rotationOffset = lerp(0, finalRotOffset, p)
   }
 

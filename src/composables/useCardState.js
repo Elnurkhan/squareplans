@@ -1,9 +1,11 @@
 import { COUNT, P9_COUNT, EASE, HOVER_EASE, TOTAL_CARDS, lerp } from '@/animation/constants'
 import { computeTargets } from '@/animation/phases'
+import { useI18n } from '@/composables/useI18n'
 
 const base = import.meta.env.BASE_URL
 
 export function useCardState() {
+  const { t } = useI18n()
   let currentProgress = 0
   let phase9 = false
   let phase9Progress = 0
@@ -27,14 +29,14 @@ export function useCardState() {
   const p8Dim = Array.from({ length: COUNT }, () => 0)
   const p9Hover = Array.from({ length: P9_COUNT }, () => 0)
 
-  // Project names for spread phase hover (one per visible card, TOTAL_CARDS + 1)
-  const projectNames = [
-    'AFI Park Воронцовский',
-    'Level Мичуринский',
-    'Мосфильмовский',
-    'Настоящее 100 кв.м',
-    'Настоящее 35 кв.м',
-    'AFI Park Воронцовский',
+  // Project name keys for spread phase hover (one per visible card, TOTAL_CARDS + 1)
+  const projectNameKeys = [
+    'project.afi',
+    'project.level',
+    'project.mosfilm',
+    'project.n100',
+    'project.n35',
+    'project.afi',
   ]
 
   let cachedTitleEl = null
@@ -117,7 +119,7 @@ export function useCardState() {
         let slot = p8HoveredIdx - cIdx
         if (slot > COUNT / 2) slot -= COUNT
         if (slot < -COUNT / 2) slot += COUNT
-        selectedProjectName = projectNames[slot] || ''
+        selectedProjectName = t(projectNameKeys[slot]) || ''
       } else {
         selectedProjectName = ''
       }
@@ -395,9 +397,9 @@ export function useCardState() {
           let slot = p8HoveredIdx - cIdx
           if (slot > COUNT / 2) slot -= COUNT
           if (slot < -COUNT / 2) slot += COUNT
-          cachedTitleEl.textContent = projectNames[slot] || 'Недавние проекты'
+          cachedTitleEl.textContent = t(projectNameKeys[slot]) || t('bottom.recent')
         } else {
-          cachedTitleEl.textContent = 'Недавние проекты'
+          cachedTitleEl.textContent = t('bottom.recent')
         }
         cachedTitleEl.style.opacity = String(1 - sT)
       }

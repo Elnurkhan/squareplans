@@ -29,9 +29,7 @@ onMounted(() => {
   lenis = new Lenis({
     autoRaf: false,
     wheelMultiplier: 1.8,
-    touchMultiplier: isMobile ? 8 : 5,
-    syncTouch: true,
-    syncTouchLerp: 0.1,
+    touchMultiplier: isMobile ? 6 : 5,
   })
   lenis.on('scroll', (e) => {
     ScrollTrigger.update(e)
