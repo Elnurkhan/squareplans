@@ -42,7 +42,10 @@
 
       <div class="intro-arc-text" ref="arcTextEl">
         <p>
-          <span v-for="(word, i) in arcWords" :key="i" class="arc-word" ref="arcWordEls">{{ word }}</span>
+          <template v-for="(line, li) in arcLines" :key="'l'+li">
+            <br v-if="li > 0" />
+            <span v-for="(word, wi) in line" :key="li+'-'+wi" class="arc-word" ref="arcWordEls">{{ word }}</span>
+          </template>
         </p>
       </div>
 
@@ -95,9 +98,10 @@ const bottomEl = ref(null)
 const showcaseInfoEl = ref(null)
 const afterIntroEl = ref(null)
 
-const arcWords = [
-  'ИНДИВИДУАЛЬНЫЕ', 'ДИЗАЙН-ПРОЕКТЫ', 'ДЛЯ', 'ЖИЛЫХ', 'И',
-  'КОММЕРЧЕСКИХ', 'ПОМЕЩЕНИЙ', 'ПОД', 'КЛЮЧ.', 'АВТОРСКИЙ', 'НАДЗОР',
+const arcLines = [
+  ['ИНДИВИДУАЛЬНЫЕ', 'ДИЗАЙН-ПРОЕКТЫ', 'ДЛЯ', 'ЖИЛЫХ'],
+  ['И', 'КОММЕРЧЕСКИХ', 'ПОМЕЩЕНИЙ', 'ПОД', 'КЛЮЧ.'],
+  ['АВТОРСКИЙ', 'НАДЗОР'],
 ]
 
 const mouseTracking = useMouseTracking()
@@ -119,6 +123,7 @@ const activeNav = ref(0)
 // Smooth scroll state for showcase overlay
 let showcaseScrollTarget = 0
 let showcaseScrollCurrent = 0
+let showcaseVelocity = 0
 
 const lightboxOpen = ref(false)
 const lightboxStartIdx = ref(0)
@@ -178,7 +183,8 @@ function onTouchMove(e) {
         e.preventDefault()
         return
       }
-      showcaseScrollTarget = Math.max(0, Math.min(maxScroll, showcaseScrollTarget + dy * 1.5))
+      showcaseVelocity = dy * 0.35
+      showcaseScrollTarget = Math.max(0, Math.min(maxScroll, showcaseScrollTarget + dy * 1.0))
     }
     e.preventDefault()
     return
@@ -251,6 +257,7 @@ function exitPhase9WithLenis() {
 
 function exitShowcaseScrollMode() {
   if (!cards.isShowcaseScrolling()) return
+  showcaseVelocity = 0
   if (afterIntroEl.value) {
     afterIntroEl.value.style.display = 'none'
   }
@@ -297,7 +304,8 @@ function onWheel(e) {
         e.stopImmediatePropagation()
         return
       }
-      showcaseScrollTarget = Math.max(0, Math.min(maxScroll, showcaseScrollTarget + e.deltaY))
+      showcaseVelocity = e.deltaY * 0.2
+      showcaseScrollTarget = Math.max(0, Math.min(maxScroll, showcaseScrollTarget + e.deltaY * 0.7))
     }
     e.preventDefault()
     e.stopImmediatePropagation()
@@ -346,13 +354,24 @@ function tickFn(time, deltaTime) {
   const showcaseProgress = cards.getShowcaseProgress()
   const showPage = cards.isShowcaseScrolling()
 
-  // Smooth-scroll the showcase overlay toward target
+  // Smooth-scroll the showcase overlay toward target (with inertia)
   if (showPage && afterIntroEl.value) {
-    showcaseScrollCurrent += (showcaseScrollTarget - showcaseScrollCurrent) * 0.12
+    const el = afterIntroEl.value
+    const maxScroll = el.scrollHeight - el.clientHeight
+
+    // Apply velocity → target, then decay
+    if (Math.abs(showcaseVelocity) > 0.5) {
+      showcaseScrollTarget = Math.max(0, Math.min(maxScroll, showcaseScrollTarget + showcaseVelocity))
+      showcaseVelocity *= 0.92
+    } else {
+      showcaseVelocity = 0
+    }
+
+    showcaseScrollCurrent += (showcaseScrollTarget - showcaseScrollCurrent) * 0.08
     if (Math.abs(showcaseScrollTarget - showcaseScrollCurrent) < 0.5) {
       showcaseScrollCurrent = showcaseScrollTarget
     }
-    afterIntroEl.value.scrollTop = showcaseScrollCurrent
+    el.scrollTop = showcaseScrollCurrent
   }
 
   // Slide showcase card up as user scrolls the overlay
@@ -465,6 +484,7 @@ onBeforeUnmount(() => {
   right: 0;
   z-index: 100;
   padding: 2rem 3rem;
+  pointer-events: none;
 }
 
 .intro-nav {
@@ -632,15 +652,23 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
+.bottom-title-stack {
+  position: relative;
+  margin-bottom: 7px;
+}
+
 .bottom-title {
   font-size: clamp(0.8rem, 1.4vw, 1.05rem);
-  font-weight: 400;
+  font-weight: 200;
   letter-spacing: 0.08em;
   color: #1a1a1a;
-  margin-bottom: 0.5rem;
 }
 
 .bottom-title-philosophy {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   font-weight: 100;
 }
 

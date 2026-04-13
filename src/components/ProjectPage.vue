@@ -1,14 +1,15 @@
 <template>
   <div class="pp" ref="rootEl">
+    <div class="pp-body">
 
     <!-- ── Projects overview ── -->
-    <section class="pp-projects-overview">
+    <section class="pp-projects-overview" ref="poSectionEl">
       <div class="pp-po-header">
-        <div class="pp-po-left rv">
+        <div class="pp-po-left">
           <h2 class="pp-po-title">Проекты</h2>
           <span class="pp-po-count" ref="countEl">0+</span>
         </div>
-        <div class="pp-po-desc rv" style="transition-delay:.15s">
+        <div class="pp-po-desc">
           <p>
             Наши проекты&nbsp;&mdash; это&nbsp;всегда индивидуальный подход и&nbsp;работа
             без&nbsp;шаблонов. Поэтому нас&nbsp;выбирают клиенты, которые
@@ -17,14 +18,14 @@
         </div>
       </div>
       <div class="pp-po-gallery">
-        <div class="pp-po-img rv rv-img">
-          <img src="https://picsum.photos/seed/po1/600/420" alt="" loading="lazy" />
+        <div class="pp-po-img pp-po-side">
+          <img :src="`${$base}projects/afi/1.jpg`" alt="" loading="lazy" />
         </div>
         <div class="pp-po-img pp-po-center" ref="poCenterImg">
-          <img src="https://picsum.photos/seed/po2/600/420" alt="" loading="lazy" />
+          <img :src="`${$base}projects/level/1.jpg`" alt="" loading="lazy" />
         </div>
-        <div class="pp-po-img rv rv-img" style="transition-delay:.15s">
-          <img src="https://picsum.photos/seed/po3/600/420" alt="" loading="lazy" />
+        <div class="pp-po-img pp-po-side">
+          <img :src="`${$base}projects/mosfilm/001.jpg`" alt="" loading="lazy" />
         </div>
       </div>
     </section>
@@ -44,7 +45,7 @@
         </div>
       </div>
       <div class="pp-ae-photo rv rv-img" style="transition-delay:.2s">
-        <img src="https://picsum.photos/seed/ae-hero/800/560" alt="" loading="lazy" />
+        <img :src="`${$base}projects/n35/1.jpg`" alt="" loading="lazy" />
       </div>
     </section>
 
@@ -56,14 +57,16 @@
         превзошёл ожидания
       </h2>
       <div class="pp-mission-photo rv rv-img" style="transition-delay:.2s">
-        <img src="https://picsum.photos/seed/mission/900/600" alt="" loading="lazy" />
+        <img :src="`${$base}projects/n100/2.jpg`" alt="" loading="lazy" />
       </div>
     </section>
-    
-    <!-- ── Hero banner ── -->
-    <section class="pp-banner" style="margin-top: 150px">
-      <div class="pp-banner-img rv rv-img">
-        <img src="https://picsum.photos/seed/banner-end/1800/900" alt="" loading="lazy" />
+
+    </div><!-- /.pp-body -->
+
+    <!-- ── Hero banner (sticky, revealed behind content) ── -->
+    <section class="pp-banner" ref="bannerEl">
+      <div class="pp-banner-img rv rv-img" ref="bannerImgEl">
+        <img :src="`${$base}projects/afi/3.jpg`" alt="" loading="lazy" />
         <p class="pp-banner-text">
           Эксклюзивность, внимание к&nbsp;деталям<br>
           и&nbsp;безупречный сервис.
@@ -75,12 +78,12 @@
     <footer class="pp-footer" data-nav="3">
       <div class="pp-footer-inner">
         <div class="pp-footer-col">
-          <span class="pp-footer-brand">SQUARE PLANS</span>
+          <img class="pp-footer-brand" :src="`${$base}logo.svg`" alt="SQUAREPLANS" />
           <span class="pp-footer-copy">&copy;2026. Все права защищены</span>
         </div>
         <div class="pp-footer-col">
-          <a href="#">Instagram</a>
-          <a href="#">Telegram</a>
+          <a href="https://www.instagram.com/squareplans?igsh=MXRjbTBoaGp6d2ZpZw==">Instagram</a>
+          <a href="https://t.me/squareplans">Telegram</a>
           <a href="#">squareplans@gmail.com</a>
         </div>
         <div class="pp-footer-col pp-footer-col-right">
@@ -103,9 +106,13 @@ gsap.registerPlugin(ScrollTrigger)
 const rootEl = ref(null)
 const countEl = ref(null)
 const poCenterImg = ref(null)
+const poSectionEl = ref(null)
+const bannerEl = ref(null)
+const bannerImgEl = ref(null)
 let observer = null
-let countObserver = null
-let centerST = null
+let poObserver = null
+let poTl = null
+let bannerTick = null
 
 const moreProjects = [
   { id: 1, src: 'https://picsum.photos/seed/proj1/600/750', title: 'Лофт в Красном Октябре' },
@@ -115,6 +122,7 @@ const moreProjects = [
 ]
 
 onMounted(() => {
+  // Reveal system for other sections (aesthetics, mission, etc.)
   observer = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
@@ -128,58 +136,121 @@ onMounted(() => {
   )
   rootEl.value?.querySelectorAll('.rv').forEach((el) => observer.observe(el))
 
-  // Center gallery image: starts lower, rises on scroll
-  if (poCenterImg.value) {
-    const gallery = rootEl.value?.querySelector('.pp-po-gallery')
-    if (gallery) {
-      centerST = gsap.fromTo(
-        poCenterImg.value,
-        { yPercent: 30, opacity: 0 },
-        {
-          yPercent: 0,
-          opacity: 1,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: gallery,
-            start: 'top 80%',
-            end: 'top 20%',
-            scrub: true,
-          },
-        }
-      )
-    }
-  }
+  // ── Projects overview: smooth GSAP reveal (berch.ch style) ──
+  if (poSectionEl.value) {
+    const title = poSectionEl.value.querySelector('.pp-po-title')
+    const count = countEl.value
+    const desc = poSectionEl.value.querySelector('.pp-po-desc')
+    const sideImgs = poSectionEl.value.querySelectorAll('.pp-po-side')
+    const centerImg = poCenterImg.value
 
-  // Count-up: 0 → 25 when the counter scrolls into view
-  if (countEl.value) {
-    countObserver = new IntersectionObserver(
+    // Initial hidden states
+    gsap.set([title, count], { y: 70, opacity: 0 })
+    gsap.set(desc, { y: 50, opacity: 0 })
+    gsap.set(sideImgs, { clipPath: 'inset(100% 0 0 0)' })
+    gsap.set(centerImg, { clipPath: 'inset(100% 0 0 0)' })
+
+    poObserver = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (!entry.isIntersecting) continue
-          const target = entry.target
-          countObserver.unobserve(target)
+          poObserver.disconnect()
+
+          poTl = gsap.timeline()
+
+          // Title slides up — slow, smooth
+          poTl.to(title, {
+            y: 0, opacity: 1,
+            duration: 1.5,
+            ease: 'power3.out',
+          })
+          // Count follows with slight overlap
+          .to(count, {
+            y: 0, opacity: 1,
+            duration: 1.5,
+            ease: 'power3.out',
+          }, 0.12)
+          // Description fades up
+          .to(desc, {
+            y: 0, opacity: 1,
+            duration: 1.3,
+            ease: 'power3.out',
+          }, 0.3)
+          // Gallery images reveal with clip-path — staggered
+          .to(sideImgs[0], {
+            clipPath: 'inset(0% 0 0 0)',
+            duration: 1.6,
+            ease: 'power4.out',
+          }, 0.5)
+          .to(centerImg, {
+            clipPath: 'inset(0% 0 0 0)',
+            duration: 1.6,
+            ease: 'power4.out',
+          }, 0.65)
+          .to(sideImgs[1], {
+            clipPath: 'inset(0% 0 0 0)',
+            duration: 1.6,
+            ease: 'power4.out',
+          }, 0.8)
+
+          // Count-up: 0 → 25 integrated into the flow
           const state = { v: 0 }
           gsap.to(state, {
             v: 25,
-            duration: 1.6,
+            duration: 2,
+            delay: 0.3,
             ease: 'power2.out',
             onUpdate: () => {
-              target.textContent = Math.round(state.v) + '+'
+              if (count) count.textContent = Math.round(state.v) + '+'
             },
           })
         }
       },
-      { threshold: 0.4 }
+      { threshold: 0.05 }
     )
-    countObserver.observe(countEl.value)
+    poObserver.observe(poSectionEl.value)
+  }
+
+  // ── Banner: darken → clear + text parallax based on pp-body scroll ──
+  if (bannerImgEl.value && rootEl.value) {
+    const overlay = bannerImgEl.value
+    const bannerText = bannerImgEl.value.querySelector('.pp-banner-text')
+    const body = rootEl.value.querySelector('.pp-body')
+
+    const bannerImg = bannerImgEl.value.querySelector('img')
+
+    bannerTick = () => {
+      if (!body) return
+      const rect = body.getBoundingClientRect()
+      const vh = window.innerHeight
+      // t = 0 when body bottom covers the viewport, t = 1 when fully scrolled past
+      const t = Math.max(0, Math.min(1, 1 - rect.bottom / vh))
+
+      // Dimming overlay
+      overlay.style.setProperty('--banner-dim', String(1 - t))
+
+      // Text parallax: moves slower than scroll (lags behind → depth feel)
+      if (bannerText) {
+        const textY = (1 - t) * 80
+        bannerText.style.transform = `translateY(${textY}px)`
+        bannerText.style.opacity = String(Math.min(1, t * 1.8))
+      }
+
+      // Image counter-parallax: subtle upward shift (faster layer)
+      if (bannerImg) {
+        const imgY = (1 - t) * -25
+        bannerImg.style.transform = `translateY(${imgY}px) scale(1.08)`
+      }
+    }
+    gsap.ticker.add(bannerTick)
   }
 })
 
 onBeforeUnmount(() => {
   observer?.disconnect()
-  countObserver?.disconnect()
-  centerST?.scrollTrigger?.kill()
-  centerST?.kill()
+  poObserver?.disconnect()
+  if (bannerTick) gsap.ticker.remove(bannerTick)
+  poTl?.kill()
 })
 
 defineExpose({ rootEl })
@@ -235,7 +306,7 @@ defineExpose({ rootEl })
 .pp-po-title {
 
   font-weight: 300;
-  font-size: clamp(1.6rem, 3.5vw, 2.8rem);
+  font-size: clamp(2.2rem, 5vw, 4rem);
   letter-spacing: -0.01em;
   color: #1a1a1a;
   margin: 0;
@@ -245,14 +316,14 @@ defineExpose({ rootEl })
 .pp-po-count {
 
   font-weight: 300;
-  font-size: clamp(1.6rem, 3.5vw, 2.8rem);
+  font-size: clamp(2.2rem, 5vw, 4rem);
   letter-spacing: -0.01em;
   color: #1a1a1a;
 }
 
 .pp-po-desc {
   padding-top: 0.5rem;
-  padding-right: var(--pad);
+  padding-right: 0;
 }
 
 .pp-po-desc p {
@@ -275,8 +346,10 @@ defineExpose({ rootEl })
   overflow: hidden;
 }
 
-.pp-po-center {
-  will-change: transform;
+.pp-po-center,
+.pp-po-side {
+  will-change: clip-path;
+  overflow: hidden;
 }
 
 .pp-po-img:nth-child(1) {
@@ -385,7 +458,7 @@ defineExpose({ rootEl })
 }
 
 .pp-mission-photo {
-  max-width: 560px;
+  max-width: 440px;
   margin: 0 auto;
   border-radius: 8px;
   overflow: hidden;
@@ -682,11 +755,37 @@ section.pp-bleed img {
 }
 
 /* ══════════════════
-   BANNER
+   BODY (content above banner)
    ══════════════════ */
+.pp-body {
+  position: relative;
+  z-index: 2;
+  background: #fafafa;
+  padding-bottom: 150px;
+}
+
+/* ══════════════════
+   BANNER (sticky reveal from behind)
+   ══════════════════ */
+.pp-banner {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+}
+
 .pp-banner-img {
   position: relative;
   overflow: hidden;
+}
+
+.pp-banner-img::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: var(--banner-dim, 1);
+  z-index: 1;
+  pointer-events: none;
 }
 
 .pp-banner-img img {
@@ -700,6 +799,7 @@ section.pp-bleed img {
   position: absolute;
   bottom: clamp(2rem, 5vw, 4rem);
   left: clamp(2rem, 5vw, 4rem);
+  z-index: 2;
 
   font-weight: 300;
   font-size: clamp(1.4rem, 3vw, 2.6rem);
@@ -745,10 +845,8 @@ section.pp-bleed img {
 }
 
 .pp-footer-brand {
-  font-size: 0.8rem;
-  font-weight: 400;
-  letter-spacing: 0.15em;
-  color: #1a1a1a;
+  width: clamp(80px, 12vw, 101px);
+  height: auto;
 }
 
 .pp-footer-copy {
@@ -759,6 +857,8 @@ section.pp-bleed img {
 
 .pp-footer-col-right {
   align-items: flex-end;
+  justify-content: space-between;
+  align-self: stretch;
 }
 
 .pp-footer-lang {
