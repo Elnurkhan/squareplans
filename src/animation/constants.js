@@ -4,7 +4,7 @@ export const PHOTO_W = 50
 export const SPACING = 16
 export const STEP = PHOTO_W + SPACING
 export const CIRCLE_R = 320
-export const EASE = 0.1
+export const EASE = typeof window !== 'undefined' && window.innerWidth < 1024 ? 0.18 : 0.1
 export const MOUSE_EASE = 0.15
 export const HOVER_EASE = 0.12
 export const TOTAL_CARDS = 5

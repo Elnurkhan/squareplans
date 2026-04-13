@@ -449,7 +449,8 @@ export function useCardState() {
       phase9ExitTime = performance.now()
       return
     }
-    const speed = 0.001
+    const isMobile = window.innerWidth < 1024
+    const speed = isMobile ? 0.004 : 0.001
     cascadeCollapseTarget = Math.max(0, Math.min(2, cascadeCollapseTarget + deltaY * speed))
   }
 
