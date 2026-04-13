@@ -25,10 +25,13 @@ const scrollLineEl = ref(null)
 provide('lenis', lenisRef)
 
 onMounted(() => {
+  const isMobile = window.innerWidth < 1024
   lenis = new Lenis({
     autoRaf: false,
     wheelMultiplier: 1.8,
-    touchMultiplier: 5,
+    touchMultiplier: isMobile ? 8 : 5,
+    syncTouch: true,
+    syncTouchLerp: 0.1,
   })
   lenis.on('scroll', (e) => {
     ScrollTrigger.update(e)
