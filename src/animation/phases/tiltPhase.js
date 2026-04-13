@@ -3,7 +3,7 @@ import { COUNT, TOTAL_CARDS } from '../constants'
 export function compute(ctx) {
   const { progress, tgt, tgtText, centerIdx, halfCount, els } = ctx
 
-  const stackProgress = (progress - 0.85) / 0.07
+  const stackProgress = (progress - 0.80) / 0.12
 
   const tiltP = Math.min(1, stackProgress / 0.35)
   const cardsP = Math.max(0, (stackProgress - 0.25) / 0.75)

@@ -76,7 +76,7 @@ export function useIntroTimeline() {
             trigger: introEl,
             pin: true,
             start: 'top top',
-            end: () => `+=${window.innerHeight * (window.innerWidth < 1024 ? 8 : 10)}`,
+            end: () => `+=${window.innerHeight * (window.innerWidth < 1024 ? 7 : 10)}`,
             onUpdate: (self) => {
               scrollEnd = self.end
               onScrollProgress(self.progress)

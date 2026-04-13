@@ -3,7 +3,7 @@ import { COUNT, lerp } from '../constants'
 export function compute(ctx) {
   const { progress, tgt, tgtText, arcCY, arcRadius, arcScale, centerIdx, halfCount, angularStep, centerAngle } = ctx
 
-  const zoomProgress = (progress - 0.75) / 0.10
+  const zoomProgress = (progress - 0.75) / 0.05
   const startX = Math.cos(centerAngle) * arcRadius
   const startY = arcCY + Math.sin(centerAngle) * arcRadius
   const startR = (centerAngle * 180 / Math.PI) + 90

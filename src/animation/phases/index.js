@@ -49,13 +49,13 @@ export function computeTargets(progress, ctx) {
     return { p8HoveredIdx: -1 }
   }
 
-  // ── Center zoom (0.75–0.85) ──
-  if (progress <= 0.85) {
+  // ── Center zoom (0.75–0.80) ──
+  if (progress <= 0.80) {
     zoomPhase.compute(phaseCtx)
     return { p8HoveredIdx: -1 }
   }
 
-  // ── Tilt accordion (0.85–0.92) ──
+  // ── Tilt accordion (0.80–0.92) ──
   if (progress <= 0.92) {
     tiltPhase.compute(phaseCtx)
     return { p8HoveredIdx: -1 }
