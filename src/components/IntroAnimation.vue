@@ -23,13 +23,13 @@
         </div>
         <div class="p9-wrapper">
           <div
-            v-for="(thumb, i) in p9Thumbnails"
+            v-for="(_, i) in p9Thumbnails"
             :key="'p9-' + i"
             class="thumb p9-thumb"
             ref="p9ThumbEls"
             @click="handleP9Click(i)"
           >
-            <img :src="thumb.src" alt="" />
+            <img alt="" />
             <div class="thumb-highlight" />
           </div>
         </div>
@@ -110,7 +110,8 @@ const arcLines = computed(() => [
 const mouseTracking = useMouseTracking()
 const timeline = useIntroTimeline()
 const cards = useCardState()
-const glCardLayer = new GlassCardLayer()
+const isMobile = window.innerWidth < 1024
+const glCardLayer = isMobile ? null : new GlassCardLayer()
 
 const { thumbnails, p9Thumbnails } = cards
 
@@ -122,6 +123,8 @@ let dragPreventsClick = false
 let touchLastY = 0
 
 const activeNav = ref(0)
+let navObserver = null
+let navFooterVisible = false
 
 // Smooth scroll state for showcase overlay
 let showcaseScrollTarget = 0
@@ -130,6 +133,7 @@ let showcaseVelocity = 0
 
 const lightboxOpen = ref(false)
 const lightboxStartIdx = ref(0)
+let p9ImagesLoaded = false
 
 const p9LightboxPhotos = cards.p9Thumbnails.map(t => ({
   src: t.src.replace('/800/1120', '/1600/2240'),
@@ -260,11 +264,33 @@ function exitPhase9WithLenis() {
 
 function exitShowcaseScrollMode() {
   if (!cards.isShowcaseScrolling()) return
+  stopNavObserver()
   showcaseVelocity = 0
   if (afterIntroEl.value) {
     afterIntroEl.value.style.display = 'none'
   }
   cards.exitShowcaseScroll()
+}
+
+function startNavObserver() {
+  stopNavObserver()
+  const root = afterIntroEl.value
+  if (!root) return
+  const footer = root.querySelector('[data-nav="3"]')
+  if (!footer) return
+  navFooterVisible = false
+  navObserver = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) navFooterVisible = e.isIntersecting
+    },
+    { root, rootMargin: '-40% 0px 0px 0px', threshold: 0 },
+  )
+  navObserver.observe(footer)
+}
+
+function stopNavObserver() {
+  if (navObserver) { navObserver.disconnect(); navObserver = null }
+  navFooterVisible = false
 }
 
 function enterShowcaseScrollMode() {
@@ -280,6 +306,7 @@ function enterShowcaseScrollMode() {
     el.scrollTop = 0
   }
   showcaseScrollTarget = 0
+  startNavObserver()
   showcaseScrollCurrent = 0
   cards.enterShowcaseScroll()
 }
@@ -353,6 +380,16 @@ function tickFn(time, deltaTime) {
     dt: (deltaTime || 16.67) / 1000,
   })
 
+  // Preload p9 images when approaching phase 9
+  if (!p9ImagesLoaded && cards.getProgress() >= 0.85) {
+    p9ImagesLoaded = true
+    const els = p9ThumbEls.value
+    for (let i = 0; i < p9Thumbnails.length && i < els.length; i++) {
+      const img = els[i].querySelector('img')
+      if (img && !img.src) img.src = p9Thumbnails[i].src
+    }
+  }
+
   // Showcase info: fade in as showcase opens, fade out when scrolling starts
   const showcaseProgress = cards.getShowcaseProgress()
   const showPage = cards.isShowcaseScrolling()
@@ -392,23 +429,9 @@ function tickFn(time, deltaTime) {
     showcaseInfoEl.value.style.transform = `translateY(${(1 - infoOpacity) * 20}px)`
   }
 
-  // Nav highlight: detect active section (use getBoundingClientRect — works with fixed overlay)
+  // Nav highlight: use IntersectionObserver result (no per-frame layout recalc)
   if (showPage) {
-    const sections = afterIntroEl.value?.querySelectorAll('[data-nav]')
-    let found = 2
-    if (sections) {
-      const el = afterIntroEl.value
-      const threshold = window.innerHeight * 0.4
-      for (const sec of sections) {
-        const rect = sec.getBoundingClientRect()
-        if (rect.top <= threshold) found = Number(sec.dataset.nav)
-      }
-      // At the very bottom → Контакты
-      if (el && el.scrollHeight - el.scrollTop - el.clientHeight < 50) {
-        found = 3
-      }
-    }
-    activeNav.value = found
+    activeNav.value = navFooterVisible ? 3 : 2
   } else if (cards.isShowcaseOpen()) {
     activeNav.value = 2
   } else if (cards.isInPhase9() || cards.getProgress() >= 0.92) {
@@ -432,8 +455,8 @@ onMounted(() => {
     onReady: () => gsap.ticker.add(tickFn),
   })
 
-  // Mount GL glass-card overlay & preload textures
-  if (glCardLayer.gl && stageEl.value) {
+  // Mount GL glass-card overlay & preload textures (skip on mobile)
+  if (glCardLayer?.gl && stageEl.value) {
     glCardLayer.mount(stageEl.value)
     for (let i = 0; i < thumbnails.length; i++) {
       glCardLayer.loadTexture(i, thumbnails[i].src)
@@ -447,6 +470,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  stopNavObserver()
   window.removeEventListener('touchstart', onTouchStart, { capture: true })
   window.removeEventListener('touchmove', onTouchMove, { capture: true })
   window.removeEventListener('touchend', onTouchEnd, { capture: true })
@@ -454,7 +478,7 @@ onBeforeUnmount(() => {
   timeline.destroy()
   gsap.ticker.remove(tickFn)
   mouseTracking.stop()
-  glCardLayer.destroy()
+  glCardLayer?.destroy()
 })
 </script>
 
@@ -531,10 +555,13 @@ onBeforeUnmount(() => {
   margin-left: -25px;
   margin-top: -36px;
   border-radius: 6px;
-  will-change: transform, opacity;
   transform-style: preserve-3d;
   backface-visibility: visible;
   outline: 1px solid transparent;
+}
+
+@media (min-width: 1024px) {
+  .thumb { will-change: transform, opacity; }
 }
 
 .thumb img {

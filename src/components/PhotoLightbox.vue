@@ -129,11 +129,17 @@ onBeforeUnmount(() => {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.97);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+@media (min-width: 1024px) {
+  .lightbox-overlay {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px);
+  }
 }
 
 .lightbox-close {

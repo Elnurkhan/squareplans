@@ -229,9 +229,15 @@ export function useCardState() {
       const c = cur[i]
       const t = tgt[i]
 
+      // Fast path: fully hidden card — snap position, skip all math & DOM
       if (c.o < 0.01 && t.o < 0.01) {
         c.x = t.x; c.y = t.y; c.z = t.z
         c.r = t.r; c.rx = t.rx; c.ry = t.ry; c.s = t.s; c.wx = t.wx
+        c.o = 0
+        hoverSpin[i] = 0; hoverLift[i] = 0
+        p8Hover[i] = 0; p8Dim[i] = 0
+        els[i].style.opacity = '0'
+        continue
       }
 
       c.x += (t.x - c.x) * EASE
@@ -272,12 +278,6 @@ export function useCardState() {
       if (t.o < 0.01) c.o = 0
       const baseO = c.o > 0.95 ? 1 : Math.max(0, c.o)
       const finalO = baseO * (1 - p8Dim[i]) * (1 - glFade)
-
-      // Skip DOM update for fully hidden cards
-      if (finalO < 0.01 && c.o < 0.01) {
-        els[i].style.opacity = '0'
-        continue
-      }
 
       els[i].style.transform = `translate3d(${c.x}px, ${c.y + p8Hover[i] * -40}px, ${c.z + hz}px) perspective(1500px) rotateX(${c.rx}deg) rotateY(${c.ry}deg) rotateZ(${c.r}deg) rotateY(${hoverSpin[i]}deg) scale(${c.s}) scaleX(${c.wx})`
       els[i].style.opacity = String(finalO)
@@ -328,6 +328,17 @@ export function useCardState() {
     for (let i = 0; i < P9_COUNT && i < p9ThumbEls.length; i++) {
       const c = p9Cur[i]
       const t = p9Tgt[i]
+
+      // Fast path: fully hidden p9 card
+      if (c.o < 0.01 && t.o < 0.01) {
+        c.x = t.x; c.y = t.y; c.z = t.z
+        c.rx = t.rx; c.ry = t.ry; c.r = t.r; c.s = t.s
+        c.o = 0; p9Hover[i] = 0
+        p9ThumbEls[i].style.opacity = '0'
+        p9ThumbEls[i].style.pointerEvents = 'none'
+        continue
+      }
+
       if (t.o < 0.01) c.o *= 0.9
       c.x += (t.x - c.x) * EASE
       c.y += (t.y - c.y) * EASE

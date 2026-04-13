@@ -217,7 +217,7 @@ onMounted(() => {
     const bannerImg = bannerImgEl.value.querySelector('img')
 
     bannerTick = () => {
-      if (!body) return
+      if (!body || !body.offsetParent) return
       const rect = body.getBoundingClientRect()
       const vh = window.innerHeight
       // t = 0 when body bottom covers the viewport, t = 1 when fully scrolled past
