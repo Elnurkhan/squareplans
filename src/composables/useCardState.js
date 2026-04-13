@@ -269,11 +269,18 @@ export function useCardState() {
       p8Hover[i] += (p8LiftTarget - p8Hover[i]) * HOVER_EASE
       p8Dim[i] += (p8DimTarget - p8Dim[i]) * HOVER_EASE
 
-      els[i].style.transform = `translate3d(${c.x}px, ${c.y + p8Hover[i] * -40}px, ${c.z + hz}px) perspective(1500px) rotateX(${c.rx}deg) rotateY(${c.ry}deg) rotateZ(${c.r}deg) rotateY(${hoverSpin[i]}deg) scale(${c.s}) scaleX(${c.wx})`
       if (t.o < 0.01) c.o = 0
       const baseO = c.o > 0.95 ? 1 : Math.max(0, c.o)
-      const finalO = baseO * (1 - p8Dim[i])
-      els[i].style.opacity = String(finalO * (1 - glFade))
+      const finalO = baseO * (1 - p8Dim[i]) * (1 - glFade)
+
+      // Skip DOM update for fully hidden cards
+      if (finalO < 0.01 && c.o < 0.01) {
+        els[i].style.opacity = '0'
+        continue
+      }
+
+      els[i].style.transform = `translate3d(${c.x}px, ${c.y + p8Hover[i] * -40}px, ${c.z + hz}px) perspective(1500px) rotateX(${c.rx}deg) rotateY(${c.ry}deg) rotateZ(${c.r}deg) rotateY(${hoverSpin[i]}deg) scale(${c.s}) scaleX(${c.wx})`
+      els[i].style.opacity = String(finalO)
     }
 
     // ── WebGL glass cards ──
@@ -300,6 +307,10 @@ export function useCardState() {
       glLayer.clear()
     }
 
+    // Phase 9 elements — skip entirely when not transitioning
+    if (!phase9 && phase9Progress < 0.01) {
+      // Fast path: no p9 work needed
+    } else {
     // Phase 9 elements — hover detection (disabled during showcase collapse)
     let p9HoveredIdx = -1
     if (phase9 && phase9Progress > 0.5 && cascadeCollapse < 0.3) {
@@ -337,6 +348,7 @@ export function useCardState() {
       p9ThumbEls[i].style.zIndex = String(P9_COUNT - i)
       p9ThumbEls[i].style.pointerEvents = p9o > 0.3 ? 'auto' : 'none'
     }
+    } // end p9 block
 
     // Text elements
     curText.o = tgtText.o >= 1 ? 1 : curText.o + (tgtText.o - curText.o) * EASE

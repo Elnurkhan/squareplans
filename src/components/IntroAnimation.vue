@@ -531,7 +531,7 @@ onBeforeUnmount(() => {
   margin-left: -25px;
   margin-top: -36px;
   border-radius: 6px;
-  will-change: auto;
+  will-change: transform, opacity;
   transform-style: preserve-3d;
   backface-visibility: visible;
   outline: 1px solid transparent;
