@@ -110,8 +110,7 @@ const arcLines = computed(() => [
 const mouseTracking = useMouseTracking()
 const timeline = useIntroTimeline()
 const cards = useCardState()
-const isMobile = window.innerWidth < 1024
-const glCardLayer = isMobile ? null : new GlassCardLayer()
+const glCardLayer = new GlassCardLayer()
 
 const { thumbnails, p9Thumbnails } = cards
 
@@ -455,8 +454,8 @@ onMounted(() => {
     onReady: () => gsap.ticker.add(tickFn),
   })
 
-  // Mount GL glass-card overlay & preload textures (skip on mobile)
-  if (glCardLayer?.gl && stageEl.value) {
+  // Mount GL glass-card overlay & preload textures
+  if (glCardLayer.gl && stageEl.value) {
     glCardLayer.mount(stageEl.value)
     for (let i = 0; i < thumbnails.length; i++) {
       glCardLayer.loadTexture(i, thumbnails[i].src)
@@ -478,7 +477,7 @@ onBeforeUnmount(() => {
   timeline.destroy()
   gsap.ticker.remove(tickFn)
   mouseTracking.stop()
-  glCardLayer?.destroy()
+  glCardLayer.destroy()
 })
 </script>
 
