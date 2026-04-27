@@ -241,6 +241,11 @@ function onWheel(e) {
 }
 
 function tickFn(time, deltaTime) {
+  // Skip the entire intro render loop while an overlay page is active.
+  // Cards live inside the main wrapper that's been swiped off-viewport, so
+  // there's nothing to look at; saves ~24+21 lerps + DOM writes per frame.
+  if (currentPage.value !== 1) return
+
   mouseTracking.update()
   cards.tick({
     thumbEls: thumbEls.value,
