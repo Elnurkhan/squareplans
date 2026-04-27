@@ -5,7 +5,6 @@ import * as zoomPhase from './zoomPhase'
 import * as tiltPhase from './tiltPhase'
 import * as spreadPhase from './spreadPhase'
 import * as cascadePhase from './cascadePhase'
-import * as showcasePhase from './showcasePhase'
 
 export function computeTargets(progress, ctx) {
   const { vh, vw, tgtBottom, tgtArc } = ctx
@@ -64,14 +63,9 @@ export function computeTargets(progress, ctx) {
   // ── Spread + hover (0.92–1.0) ──
   const p8HoveredIdx = spreadPhase.compute(phaseCtx)
 
-  // ── Cascade overlay (click-triggered) ──
+  // ── Cascade overlay (click-triggered) — final stage ──
   if (phaseCtx.phase9Progress > 0.01) {
-    const collapse = phaseCtx.cascadeCollapse || 0
-    if (collapse > 1) {
-      showcasePhase.compute(phaseCtx)
-    } else {
-      cascadePhase.compute(phaseCtx)
-    }
+    cascadePhase.compute(phaseCtx)
     // Fade cascade cards with phase9Progress transition
     const p9Fade = phaseCtx.phase9Progress
     for (let i = 0; i < P9_COUNT; i++) ctx.p9Tgt[i].o *= p9Fade

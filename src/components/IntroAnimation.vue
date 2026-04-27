@@ -1,13 +1,4 @@
 <template>
-  <header class="intro-header" ref="headerEl">
-    <nav class="intro-nav">
-      <a href="#" :class="{ active: activeNav === 0 }">{{ t('nav.intro') }}</a>
-      <a href="#" :class="{ active: activeNav === 1 }">{{ t('nav.projects') }}</a>
-      <a href="#" :class="{ active: activeNav === 2 }">{{ t('nav.about') }}</a>
-      <a href="#" :class="{ active: activeNav === 3 }">{{ t('nav.contacts') }}</a>
-    </nav>
-  </header>
-
   <div class="intro" ref="introEl">
     <div class="intro-sticky" ref="stickyEl">
       <div class="intro-stage" ref="stageEl">
@@ -60,11 +51,6 @@
     </div>
   </div>
 
-  <div class="after-intro" ref="afterIntroEl" data-lenis-prevent>
-    <div class="showcase-spacer"></div>
-    <ProjectPage />
-  </div>
-
   <PhotoLightbox
     :visible="lightboxOpen"
     :photos="p9LightboxPhotos"
@@ -74,20 +60,19 @@
 </template>
 
 <script setup>
-import { ref, computed, inject, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, inject, watch, onMounted, onBeforeUnmount } from 'vue'
 import gsap from 'gsap'
 import { useMouseTracking } from '@/composables/useMouseTracking'
 import { useIntroTimeline } from '@/composables/useIntroTimeline'
 import { useCardState } from '@/composables/useCardState'
 import { useI18n } from '@/composables/useI18n'
+import { usePageNavigation } from '@/composables/usePageNavigation'
 import PhotoLightbox from '@/components/PhotoLightbox.vue'
-import ProjectPage from '@/components/ProjectPage.vue'
 import { GlassCardLayer } from '@/webgl/GlassCardLayer'
 
 const lenisRef = inject('lenis')
 
 const introEl = ref(null)
-const headerEl = ref(null)
 const stickyEl = ref(null)
 const stageEl = ref(null)
 const thumbEls = ref([])
@@ -96,9 +81,6 @@ const centerEl = ref(null)
 const arcTextEl = ref(null)
 const arcWordEls = ref([])
 const bottomEl = ref(null)
-const showcaseInfoEl = ref(null)
-const afterIntroEl = ref(null)
-
 const { t } = useI18n()
 
 const arcLines = computed(() => [
@@ -111,6 +93,15 @@ const mouseTracking = useMouseTracking()
 const timeline = useIntroTimeline()
 const cards = useCardState()
 const glCardLayer = new GlassCardLayer()
+const { currentPage, navigate } = usePageNavigation()
+
+// When returning to the main page from an overlay, snap card cur→tgt on the
+// next tick so we don't see a brief lerp catch-up (e.g. mobile address bar
+// collapse changes viewport height while the overlay is up, which shifts
+// targets a bit).
+watch(currentPage, (n, prev) => {
+  if (n === 1 && prev !== 1) cards.snap()
+})
 
 const { thumbnails, p9Thumbnails } = cards
 
@@ -119,16 +110,6 @@ let touchStartX = 0
 let touchStartY = 0
 let touchLocked = null
 let dragPreventsClick = false
-let touchLastY = 0
-
-const activeNav = ref(0)
-let navObserver = null
-let navFooterVisible = false
-
-// Smooth scroll state for showcase overlay
-let showcaseScrollTarget = 0
-let showcaseScrollCurrent = 0
-let showcaseVelocity = 0
 
 const lightboxOpen = ref(false)
 const lightboxStartIdx = ref(0)
@@ -159,64 +140,22 @@ function handleP9Click(i) {
 }
 
 function onTouchStart(e) {
+  if (currentPage.value !== 1) return
   if (window.innerWidth >= 1024) return
   const t = e.touches[0]
   touchStartX = t.clientX
   touchStartY = t.clientY
-  touchLastY = t.clientY
   touchLocked = null
 
-  // Don't start card drag if we're in showcase scroll mode
-  if (!cards.isShowcaseScrolling()) {
-    cards.startDrag(t.clientX, t.clientY)
-  }
+  cards.startDrag(t.clientX, t.clientY)
 }
 
 function onTouchMove(e) {
+  if (currentPage.value !== 1) return
   if (window.innerWidth >= 1024) return
   const t = e.touches[0]
 
-  // Showcase scroll mode: scroll the overlay content via touch
-  if (cards.isShowcaseScrolling()) {
-    const dy = touchLastY - t.clientY // positive = finger moved up = scroll down
-    touchLastY = t.clientY
-    const el = afterIntroEl.value
-    if (el) {
-      const maxScroll = el.scrollHeight - el.clientHeight
-      // Swiping down at the top → exit showcase scroll
-      if (dy < 0 && showcaseScrollTarget <= 0) {
-        exitShowcaseScrollMode()
-        e.preventDefault()
-        return
-      }
-      showcaseVelocity = dy * 0.35
-      showcaseScrollTarget = Math.max(0, Math.min(maxScroll, showcaseScrollTarget + dy * 1.0))
-    }
-    e.preventDefault()
-    return
-  }
-
-  // Showcase open (but not scrolling yet): swipe up → enter scroll mode
-  if (cards.isShowcaseOpen()) {
-    const dy = t.clientY - touchStartY
-    if (dy < -20) {
-      enterShowcaseScrollMode()
-      touchLastY = t.clientY
-      e.preventDefault()
-      return
-    }
-    // Swipe down → go back to cascade
-    if (dy > 20) {
-      cards.scrollCascade(dy * -0.4)
-      if (!cards.isInPhase9()) exitPhase9WithLenis()
-      e.preventDefault()
-      return
-    }
-    e.preventDefault()
-    return
-  }
-
-  // Phase 9: diagonal drag, vertical swipe collapses
+  // Phase 9: diagonal drag, vertical swipe collapses cascade back to spread
   if (cards.isInPhase9()) {
     if (!touchLocked) {
       const dx = Math.abs(t.clientX - touchStartX)
@@ -251,8 +190,28 @@ function onTouchMove(e) {
   }
 }
 
-function onTouchEnd() {
+function onTouchEnd(e) {
+  if (currentPage.value !== 1) return
   cards.endDrag()
+
+  // Page-swipe gesture (mobile only): horizontal swipe-left when we're NOT
+  // in a card-drag phase navigates forward to "О нас". Phase 8 (>= 0.92) and
+  // phase 9 (cascade) own horizontal/diagonal touch — don't hijack them.
+  const progress = cards.getProgress()
+  if (
+    window.innerWidth < 1024 &&
+    progress < 0.92 &&
+    !cards.isInPhase9() &&
+    e && e.changedTouches && e.changedTouches[0]
+  ) {
+    const t = e.changedTouches[0]
+    const dx = t.clientX - touchStartX
+    const dy = t.clientY - touchStartY
+    if (Math.abs(dx) > 60 && Math.abs(dy) < Math.abs(dx) * 0.6 && dx < 0) {
+      navigate(2)
+    }
+  }
+
   touchLocked = null
 }
 
@@ -261,56 +220,8 @@ function exitPhase9WithLenis() {
   if (l) l.start()
 }
 
-function exitShowcaseScrollMode() {
-  if (!cards.isShowcaseScrolling()) return
-  stopNavObserver()
-  showcaseVelocity = 0
-  if (afterIntroEl.value) {
-    afterIntroEl.value.style.display = 'none'
-  }
-  cards.exitShowcaseScroll()
-}
-
-function startNavObserver() {
-  stopNavObserver()
-  const root = afterIntroEl.value
-  if (!root) return
-  const footer = root.querySelector('[data-nav="3"]')
-  if (!footer) return
-  navFooterVisible = false
-  navObserver = new IntersectionObserver(
-    (entries) => {
-      for (const e of entries) navFooterVisible = e.isIntersecting
-    },
-    { root, rootMargin: '-40% 0px 0px 0px', threshold: 0 },
-  )
-  navObserver.observe(footer)
-}
-
-function stopNavObserver() {
-  if (navObserver) { navObserver.disconnect(); navObserver = null }
-  navFooterVisible = false
-}
-
-function enterShowcaseScrollMode() {
-  if (cards.isShowcaseScrolling()) return
-  if (afterIntroEl.value) {
-    const el = afterIntroEl.value
-    el.style.display = 'block'
-    el.style.position = 'fixed'
-    el.style.inset = '0'
-    el.style.overflowY = 'auto'
-    el.style.zIndex = '60'
-    el.style.background = 'transparent'
-    el.scrollTop = 0
-  }
-  showcaseScrollTarget = 0
-  startNavObserver()
-  showcaseScrollCurrent = 0
-  cards.enterShowcaseScroll()
-}
-
 function onWheel(e) {
+  if (currentPage.value !== 1) return
   // Block scroll during phase9 exit cooldown (absorb trackpad inertia)
   if (!cards.isInPhase9()) {
     if (cards.shouldBlockScroll()) {
@@ -321,44 +232,10 @@ function onWheel(e) {
     return
   }
 
-  // Showcase scroll mode: update target, block Lenis
-  if (cards.isShowcaseScrolling()) {
-    const el = afterIntroEl.value
-    if (el) {
-      const maxScroll = el.scrollHeight - el.clientHeight
-      // Scrolling up at the top → exit showcase scroll, return to showcase view
-      if (e.deltaY < 0 && showcaseScrollTarget <= 0) {
-        exitShowcaseScrollMode()
-        e.preventDefault()
-        e.stopImmediatePropagation()
-        return
-      }
-      showcaseVelocity = e.deltaY * 0.2
-      showcaseScrollTarget = Math.max(0, Math.min(maxScroll, showcaseScrollTarget + e.deltaY * 0.7))
-    }
-    e.preventDefault()
-    e.stopImmediatePropagation()
-    return
-  }
-
-  // Showcase open + scroll down → transition to normal page scroll without consuming the event
-  if (cards.isShowcaseOpen() && e.deltaY > 0) {
-    enterShowcaseScrollMode()
-    return
-  }
-
   cards.recordWheel()
   e.preventDefault()
   e.stopImmediatePropagation()
 
-  if (cards.isShowcaseOpen()) {
-    // Scroll up → go back to cascade
-    if (e.deltaY < 0) {
-      cards.scrollCascade(e.deltaY)
-      if (!cards.isInPhase9()) exitPhase9WithLenis()
-    }
-    return
-  }
   cards.scrollCascade(e.deltaY)
   if (!cards.isInPhase9()) exitPhase9WithLenis()
 }
@@ -389,54 +266,8 @@ function tickFn(time, deltaTime) {
     }
   }
 
-  // Showcase info: fade in as showcase opens, fade out when scrolling starts
-  const showcaseProgress = cards.getShowcaseProgress()
-  const showPage = cards.isShowcaseScrolling()
-
-  // Smooth-scroll the showcase overlay toward target (with inertia)
-  if (showPage && afterIntroEl.value) {
-    const el = afterIntroEl.value
-    const maxScroll = el.scrollHeight - el.clientHeight
-
-    // Apply velocity → target, then decay
-    if (Math.abs(showcaseVelocity) > 0.5) {
-      showcaseScrollTarget = Math.max(0, Math.min(maxScroll, showcaseScrollTarget + showcaseVelocity))
-      showcaseVelocity *= 0.92
-    } else {
-      showcaseVelocity = 0
-    }
-
-    showcaseScrollCurrent += (showcaseScrollTarget - showcaseScrollCurrent) * 0.08
-    if (Math.abs(showcaseScrollTarget - showcaseScrollCurrent) < 0.5) {
-      showcaseScrollCurrent = showcaseScrollTarget
-    }
-    el.scrollTop = showcaseScrollCurrent
-  }
-
-  // Slide showcase card up as user scrolls the overlay
   if (stickyEl.value) {
-    if (showPage && afterIntroEl.value) {
-      const scrollY = showcaseScrollCurrent
-      stickyEl.value.style.transform = `translateY(${-scrollY}px)`
-    } else if (!cards.isInPhase9() || !showPage) {
-      stickyEl.value.style.transform = ''
-    }
-  }
-  if (showcaseInfoEl.value) {
-    const infoOpacity = showPage ? 0 : Math.max(0, Math.min(1, (showcaseProgress - 0.3) / 0.4))
-    showcaseInfoEl.value.style.opacity = String(infoOpacity)
-    showcaseInfoEl.value.style.transform = `translateY(${(1 - infoOpacity) * 20}px)`
-  }
-
-  // Nav highlight: use IntersectionObserver result (no per-frame layout recalc)
-  if (showPage) {
-    activeNav.value = navFooterVisible ? 3 : 2
-  } else if (cards.isShowcaseOpen()) {
-    activeNav.value = 2
-  } else if (cards.isInPhase9() || cards.getProgress() >= 0.92) {
-    activeNav.value = 1
-  } else {
-    activeNav.value = 0
+    stickyEl.value.style.transform = ''
   }
 }
 
@@ -444,7 +275,6 @@ onMounted(() => {
   mouseTracking.start()
   timeline.create({
     introEl: introEl.value,
-    headerEl: headerEl.value,
     stageEl: stageEl.value,
     centerEl: centerEl.value,
     bottomEl: bottomEl.value,
@@ -469,7 +299,6 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  stopNavObserver()
   window.removeEventListener('touchstart', onTouchStart, { capture: true })
   window.removeEventListener('touchmove', onTouchMove, { capture: true })
   window.removeEventListener('touchend', onTouchEnd, { capture: true })
@@ -489,52 +318,9 @@ onBeforeUnmount(() => {
   background: #fafafa;
 }
 
-.after-intro {
-  display: none;
-}
-
-.showcase-spacer {
-  height: 100vh;
-}
-
 .intro-sticky {
   height: 100vh;
   overflow: hidden;
-}
-
-/* ── Header ── */
-.intro-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  padding: 2rem 3rem;
-  pointer-events: none;
-}
-
-.intro-nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3rem;
-
-}
-
-.intro-nav a {
-  font-size: 0.7rem;
-  font-weight: 400;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #1a1a1a;
-  text-decoration: none;
-  opacity: 0.45;
-  transition: opacity 0.3s;
-}
-
-.intro-nav a:hover,
-.intro-nav a.active {
-  opacity: 1;
 }
 
 /* ── Thumbnail stage ── */
@@ -713,71 +499,6 @@ onBeforeUnmount(() => {
   color: rgba(26, 26, 26, 0.35);
 }
 
-/* ── Showcase info ── */
-.showcase-info {
-  position: absolute;
-  bottom: 8%;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  text-align: center;
-  pointer-events: none;
-  opacity: 0;
-}
-
-.showcase-title {
-
-  font-weight: 300;
-  font-size: clamp(1.1rem, 2.4vw, 1.8rem);
-  letter-spacing: -0.01em;
-  color: #1a1a1a;
-  margin: 0 0 1rem;
-}
-
-.showcase-meta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.7rem;
-
-  font-size: 0.68rem;
-  font-weight: 300;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(26, 26, 26, 0.4);
-  margin-bottom: 2rem;
-}
-
-.showcase-dot {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: rgba(26, 26, 26, 0.2);
-}
-
-.showcase-scroll-hint {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-
-  font-size: 0.6rem;
-  font-weight: 300;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: rgba(26, 26, 26, 0.25);
-}
-
-.showcase-scroll-hint svg {
-  animation: showcase-bounce 2s ease-in-out infinite;
-}
-
-@keyframes showcase-bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(5px); }
-}
-
-
 /* ── Responsive ── */
 @media (max-width: 1023px) {
   .thumb {
@@ -790,14 +511,6 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 640px) {
-  .intro-nav {
-    gap: 1.5rem;
-  }
-
-  .intro-nav a {
-    font-size: 0.6rem;
-  }
-
   .intro-brand {
     font-size: 0.7rem;
   }

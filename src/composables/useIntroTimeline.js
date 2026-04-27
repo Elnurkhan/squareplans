@@ -17,7 +17,7 @@ export function useIntroTimeline() {
   let gsapCtx = null
   let scrollEnd = 0
 
-  function create({ introEl, headerEl, stageEl, centerEl, bottomEl, thumbEls, cur, onScrollProgress, onReady }) {
+  function create({ introEl, stageEl, centerEl, bottomEl, thumbEls, cur, onScrollProgress, onReady }) {
     const vw = window.innerWidth
     const els = thumbEls
     const isMobile = vw < 1024
@@ -30,7 +30,6 @@ export function useIntroTimeline() {
     const circleR = getCircleR(vw, vh)
 
     gsap.set(els, { opacity: 0, scale: 1 / 3, x: 0, y: 0, rotation: 0 })
-    gsap.set(headerEl, { opacity: 0, y: -30 })
     gsap.set(centerEl, { opacity: 0, scale: 0.85, y: 20 })
     gsap.set(bottomEl, { opacity: 0, y: 30 })
 
@@ -88,11 +87,6 @@ export function useIntroTimeline() {
         onReady()
       },
     })
-
-    // Header fade in
-    masterTl.to(headerEl, {
-      opacity: 1, y: 0, duration: 0.6, ease: 'power3.out',
-    }, 0)
 
     if (isMobile) {
       // Mobile/tablet: appear as a flat centered stack (scaled up)

@@ -1,4 +1,4 @@
-import { COUNT, P9_COUNT, EASE, HOVER_EASE, TOTAL_CARDS, lerp } from '@/animation/constants'
+import { COUNT, P9_COUNT, EASE, HOVER_EASE, TOTAL_CARDS } from '@/animation/constants'
 import { computeTargets } from '@/animation/phases'
 import { useI18n } from '@/composables/useI18n'
 
@@ -45,11 +45,12 @@ export function useCardState() {
   let cachedBottomEl = null
   let selectedProjectName = ''
 
-  // Cascade collapse (scroll down in phase 9 compresses cards into a stack)
-  let cascadeCollapse = 0
-  let cascadeCollapseTarget = 0
   let phase9ExitTime = 0
   let lastWheelTime = 0
+  // When set, the next tick snaps `cur` directly to `tgt` instead of lerping.
+  // Used after returning from an overlay page so cards don't visibly catch up
+  // to fresh targets (e.g. when mobile viewport height shifts during nav).
+  let pendingSnap = false
 
   // Mobile drag (phase 8: horizontal, phase 9: along cascade diagonal)
   let dragOffsetX = 0
@@ -90,17 +91,8 @@ export function useCardState() {
   }))
 
   function setProgress(p) {
-    if (phase9) {
-      // In showcase scroll mode, ignore progress — scrolling is handled by Lenis/browser
-      // Only exit if user deliberately scrolls back far enough
-      if (showcaseScrolling && p < 0.9) {
-        phase9 = false
-        showcaseScrolling = false
-        phase9ExitTime = performance.now()
-        currentProgress = p
-      }
-      return
-    }
+    // In phase 9 (cascade), ignore scroll progress entirely — cascade is the final stage.
+    if (phase9) return
     const now = performance.now()
     const elapsed = now - phase9ExitTime
     // Block progress updates while wheel inertia is still active after phase 9 exit
@@ -143,17 +135,9 @@ export function useCardState() {
     const isSpread = currentProgress >= 0.92 && !phase9
     const glFade = glReady && isSpread ? Math.min(1, (currentProgress - 0.92) / 0.03) : 0
 
-    // Phase 9 transition
-    if (!phase9) cascadeCollapseTarget = 0
+    // Phase 9 transition (cascade is the final, static stage — no collapse animation)
     const p9Target = phase9 ? 1 : 0
     phase9Progress += (p9Target - phase9Progress) * (phase9 ? 0.04 : 0.08)
-    const collapseDir = cascadeCollapseTarget - cascadeCollapse
-    const collapseEase = collapseDir < 0
-      ? lerp(0.07, 0.04, Math.min(cascadeCollapse, 1))
-      : cascadeCollapse > 1
-        ? 0.07
-        : lerp(0.08, 0.04, cascadeCollapse)
-    cascadeCollapse += (cascadeCollapseTarget - cascadeCollapse) * collapseEase
 
     const mx = mouse.x * vw / 2
     const my = mouse.y * vh / 2
@@ -212,17 +196,40 @@ export function useCardState() {
       dragMomentumDiag = 0
     }
 
-    // Allow cards to overflow on mobile during drag phases, and during showcase
-    const showcaseActive = cascadeCollapse > 1
+    // Allow cards to overflow on mobile during drag phases (phase 8 / 9).
     if (stickyEl) {
-      stickyEl.style.overflow = ((isMobile && currentProgress >= 0.92) || showcaseActive) ? 'visible' : 'hidden'
+      stickyEl.style.overflow = (isMobile && currentProgress >= 0.92) ? 'visible' : 'hidden'
     }
 
     const result = computeTargets(currentProgress, {
       vh, vw, tgt, tgtText, tgtArc, tgtBottom, cur, els, mouse,
-      smoothMouse, p9Tgt, phase9, phase9Progress, dragOffsetX, dragDiag, cascadeDirX, cascadeDirY, cascadeCollapse,
+      smoothMouse, p9Tgt, phase9, phase9Progress, dragOffsetX, dragDiag, cascadeDirX, cascadeDirY,
     })
     p8HoveredIdx = result.p8HoveredIdx
+
+    // Snap: copy fresh targets directly into `cur` so the lerp loop below
+    // has zero distance to travel — no visible "catch-up" animation.
+    if (pendingSnap) {
+      for (let i = 0; i < COUNT; i++) {
+        const c = cur[i]; const t = tgt[i]
+        c.x = t.x; c.y = t.y; c.z = t.z
+        c.r = t.r; c.rx = t.rx; c.ry = t.ry
+        c.s = t.s; c.wx = t.wx; c.o = t.o
+        hoverSpin[i] = 0; hoverLift[i] = 0
+        p8Hover[i] = 0; p8Dim[i] = 0
+      }
+      for (let i = 0; i < P9_COUNT; i++) {
+        const c = p9Cur[i]; const t = p9Tgt[i]
+        c.x = t.x; c.y = t.y; c.z = t.z
+        c.r = t.r; c.rx = t.rx; c.ry = t.ry
+        c.s = t.s; c.o = t.o
+        p9Hover[i] = 0
+      }
+      curText.o = tgtText.o; curText.y = tgtText.y
+      curArc.o = tgtArc.o; curArc.y = tgtArc.y
+      curBottom.o = tgtBottom.o; curBottom.y = tgtBottom.y
+      pendingSnap = false
+    }
 
     // Interpolate main cards
     for (let i = 0; i < COUNT; i++) {
@@ -310,11 +317,21 @@ export function useCardState() {
 
     // Phase 9 elements — skip entirely when not transitioning
     if (!phase9 && phase9Progress < 0.01) {
-      // Fast path: no p9 work needed
+      // Fast path: ensure no residual opacity is left on cards. p9Cur may still
+      // hold small (e.g. 0.04) leftover values from the fade-out tail because
+      // the lerp never reaches exactly zero. Snap them to 0 explicitly so we
+      // don't leave ghosted cards on the spread.
+      for (let i = 0; i < P9_COUNT && i < p9ThumbEls.length; i++) {
+        if (p9Cur[i].o !== 0) {
+          p9Cur[i].o = 0
+          p9ThumbEls[i].style.opacity = '0'
+          p9ThumbEls[i].style.pointerEvents = 'none'
+        }
+      }
     } else {
-    // Phase 9 elements — hover detection (disabled during showcase collapse)
+    // Phase 9 elements — hover detection
     let p9HoveredIdx = -1
-    if (phase9 && phase9Progress > 0.5 && cascadeCollapse < 0.3) {
+    if (phase9 && phase9Progress > 0.5) {
       let bestIdx = -1
       let bestDist = Infinity
       for (let i = 0; i < P9_COUNT && i < p9ThumbEls.length; i++) {
@@ -404,12 +421,6 @@ export function useCardState() {
         cachedSubEl = bottomEl.querySelector('.bottom-sub')
       }
 
-      // Smooth crossfade between project title / philosophy text / sub line
-      // based on the cascade→showcase progress.
-      const showcaseT = Math.min(1, Math.max(0, cascadeCollapse - 1))
-      // Ease (smoothstep) so the swap feels gentle
-      const sT = showcaseT * showcaseT * (3 - 2 * showcaseT)
-
       if (cachedTitleEl) {
         if (phase9 && selectedProjectName) {
           cachedTitleEl.textContent = selectedProjectName
@@ -425,13 +436,13 @@ export function useCardState() {
         } else {
           cachedTitleEl.textContent = t('bottom.recent')
         }
-        cachedTitleEl.style.opacity = String(1 - sT)
+        cachedTitleEl.style.opacity = '1'
       }
       if (cachedPhilosophyEl) {
-        cachedPhilosophyEl.style.opacity = String(sT)
+        cachedPhilosophyEl.style.opacity = '0'
       }
       if (cachedSubEl) {
-        cachedSubEl.style.opacity = String(1 - sT)
+        cachedSubEl.style.opacity = '1'
       }
     }
   }
@@ -467,15 +478,12 @@ export function useCardState() {
 
   function scrollCascade(deltaY) {
     if (!phase9) return
-    // Exit phase9 when fully uncollapsed and still scrolling up
-    if (deltaY < 0 && cascadeCollapseTarget <= 0 && cascadeCollapse < 0.001) {
+    // Cascade is the final, static stage. Scrolling does not collapse cards
+    // anymore — only an upward scroll exits phase 9 back to the spread view.
+    if (deltaY < 0) {
       phase9 = false
       phase9ExitTime = performance.now()
-      return
     }
-    const isMobile = window.innerWidth < 1024
-    const speed = isMobile ? 0.004 : 0.001
-    cascadeCollapseTarget = Math.max(0, Math.min(2, cascadeCollapseTarget + deltaY * speed))
   }
 
   function isInPhase9() {
@@ -494,40 +502,19 @@ export function useCardState() {
     return false
   }
 
-  function getShowcaseProgress() {
-    return Math.max(0, cascadeCollapse - 1)
-  }
-
-  function isShowcaseOpen() {
-    return cascadeCollapse >= 1.85
-  }
-
-  let showcaseScrolling = false
-
-  function enterShowcaseScroll() {
-    showcaseScrolling = true
-  }
-
-  function isShowcaseScrolling() {
-    return showcaseScrolling
-  }
-
-  function exitShowcaseScroll() {
-    showcaseScrolling = false
-  }
-
   function forceExitPhase9() {
     phase9 = false
-    showcaseScrolling = false
     phase9ExitTime = performance.now()
     currentProgress = 1
-    cascadeCollapse = 0
-    cascadeCollapseTarget = 0
   }
 
   function getProgress() {
     return currentProgress
   }
 
-  return { cur, thumbnails, p9Thumbnails, setProgress, onThumbClick, scrollCascade, tick, startDrag, moveDrag, endDrag, isInPhase9, forceExitPhase9, shouldBlockScroll, recordWheel, getShowcaseProgress, isShowcaseOpen, isShowcaseScrolling, enterShowcaseScroll, exitShowcaseScroll, getProgress }
+  function snap() {
+    pendingSnap = true
+  }
+
+  return { cur, thumbnails, p9Thumbnails, setProgress, onThumbClick, scrollCascade, tick, startDrag, moveDrag, endDrag, isInPhase9, forceExitPhase9, shouldBlockScroll, recordWheel, getProgress, snap }
 }

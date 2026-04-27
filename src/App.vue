@@ -1,5 +1,10 @@
 <template>
-  <IntroAnimation />
+  <SiteHeader />
+  <div class="main-page" ref="mainPageEl">
+    <IntroAnimation />
+  </div>
+  <AboutPage />
+  <ContactsPage />
   <a href="#hero" class="skip-link">Skip to content</a>
   <DOMLayer>
   </DOMLayer>
@@ -14,7 +19,11 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 import IntroAnimation from '@/components/IntroAnimation.vue'
+import AboutPage from '@/components/AboutPage.vue'
+import ContactsPage from '@/components/ContactsPage.vue'
+import SiteHeader from '@/components/SiteHeader.vue'
 import DOMLayer from '@/components/DOMLayer.vue'
+import { usePageNavigation } from '@/composables/usePageNavigation'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -22,9 +31,14 @@ let lenis
 let lenisTicker
 const lenisRef = ref(null)
 const scrollLineEl = ref(null)
+const mainPageEl = ref(null)
 provide('lenis', lenisRef)
 
+const { setLenisGetter, registerPage } = usePageNavigation()
+setLenisGetter(() => lenisRef.value)
+
 onMounted(() => {
+  registerPage(1, mainPageEl.value)
   const isMobile = window.innerWidth < 1024
   lenis = new Lenis({
     autoRaf: false,
@@ -45,6 +59,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  registerPage(1, null)
   if (lenisTicker) gsap.ticker.remove(lenisTicker)
   lenisTicker = null
   lenis?.destroy()
@@ -76,6 +91,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Main-page wrapper. Transform applied via GSAP from usePageNavigation.
+   No CSS transition — GSAP handles the timing so it stays in sync with
+   overlay animations. After returning to main, GSAP `clearProps`
+   strips the transform and ScrollTrigger.refresh() rebuilds the pin. */
+
 .scroll-line {
   position: fixed;
   top: 0;
@@ -85,7 +105,7 @@ body {
   background: #1a1a1a;
   transform-origin: top center;
   transform: scaleY(0);
-  z-index: 200;
+  z-index: 250;
   pointer-events: none;
 }
 
