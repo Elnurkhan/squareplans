@@ -10,7 +10,7 @@
       <div class="hero-row">
         <div class="half-photo reveal" style="--i: 2">
           <img
-            :src="`${$base}about/Rectangle%2090.png`"
+            :src="`${$base}Ellipse%207.png`"
             alt="SquarePlans"
             loading="lazy"
           />
@@ -68,7 +68,7 @@ onBeforeUnmount(() => registerPage(3, null))
   pointer-events: none;
   overflow: hidden;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   padding: 100px 2rem 3rem;
   box-sizing: border-box;
@@ -88,7 +88,7 @@ onBeforeUnmount(() => registerPage(3, null))
 
 .eyebrow {
   font-size: 0.78rem;
-  font-weight: 400;
+  font-weight: 200;
   color: rgba(20, 20, 26, 0.75);
   margin: 0 0 12px;
   letter-spacing: 0;
@@ -145,31 +145,31 @@ onBeforeUnmount(() => registerPage(3, null))
 .contacts-list {
   grid-column: 2;
   grid-row: 2;
-  display: grid;
-  grid-template-columns: max-content max-content;
-  column-gap: 1rem;
-  row-gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
   margin: 0 0 0.4rem;
   text-align: left;
 }
 .row {
-  display: contents;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .contacts-list dt {
-  font-size: 0.88rem;
-  color: rgba(20, 20, 26, 0.55);
+  font-size: 0.78rem;
+  color: black;
   font-weight: 400;
   text-align: left;
-  align-self: baseline;
+  margin: 0;
 }
 
 .contacts-list dd {
   font-size: 0.95rem;
   color: #14131a;
   margin: 0;
-  font-weight: 400;
-  align-self: baseline;
+  font-weight: 200;
 }
 .contacts-list dd a {
   color: inherit;

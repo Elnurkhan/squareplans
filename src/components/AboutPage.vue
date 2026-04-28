@@ -117,7 +117,7 @@ onBeforeUnmount(() => registerPage(2, null))
 /* ── Badge ── */
 .badge {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.7rem;
   font-size: 0.78rem;
   line-height: 1.5;
@@ -128,7 +128,6 @@ onBeforeUnmount(() => registerPage(2, null))
 .badge-mark {
   color: #14131a;
   font-size: 0.7rem;
-  margin-top: 0.25em;
   flex-shrink: 0;
 }
 .badge-text {
@@ -163,15 +162,15 @@ onBeforeUnmount(() => registerPage(2, null))
 .text-col {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 1.5rem;
+  /* No flex gap — every gap between siblings is set explicitly via
+     adjacent-sibling margins so each pair can have its own spacing. */
   min-height: 0;
 }
 
 .title {
   font-family: 'Petrov Sans Trial', Georgia, serif;
   font-weight: 300;
-  font-size: clamp(1.45rem, 1.9vw, 2rem);
+  font-size: clamp(1.8rem, 2.5vw, 2.5rem);
   line-height: 1.2;
   letter-spacing: -0.005em;
   color: #14131a;
@@ -192,11 +191,20 @@ onBeforeUnmount(() => registerPage(2, null))
   margin: 0;
   max-width: 540px;
 }
+/* Explicit per-pair gaps in the text column. */
+.title + .lede { margin-top: 12px; }
+.lede + .quote { margin-top: 36px; }
+.quote + .lede { margin-top: 12px; }
+/* Both auto: free vertical space splits equally before & after stat-row,
+   centering it between the lede above and the mission-section below.
+   Mission still ends up flush with the bottom of the photo. */
+.lede + .stat-row { margin-top: auto; }
+.stat-row + .mission-section { margin-top: auto; }
 
 .quote {
   font-family: 'Petrov Sans Trial', Georgia, serif;
   font-weight: 200;
-  font-size: clamp(1.3rem, 1.9vw, 1.8rem);
+  font-size: clamp(1.15rem, 1.6vw, 1.55rem);
   line-height: 1.28;
   letter-spacing: -0.005em;
   color: #14131a;
@@ -208,7 +216,6 @@ onBeforeUnmount(() => registerPage(2, null))
   display: flex;
   align-items: baseline;
   gap: 1rem;
-  margin-top: 0.5rem;
 }
 .stat-num {
   font-family: 'Petrov Sans Trial', Georgia, serif;
@@ -227,10 +234,7 @@ onBeforeUnmount(() => registerPage(2, null))
   font-weight: 300;
 }
 
-/* ── Mission (sits at bottom of text column) ── */
-.mission-section {
-  margin-top: 0.5rem;
-}
+/* ── Mission (sits at bottom of text column via `.stat-row + .mission-section`) ── */
 .mission-title {
   font-family: 'Petrov Sans Trial', Georgia, serif;
   font-size: clamp(1.15rem, 1.5vw, 1.5rem);
@@ -248,7 +252,7 @@ onBeforeUnmount(() => registerPage(2, null))
   line-height: 1.4;
   color: rgba(20, 20, 26, 0.85);
   margin: 0;
-  font-weight: 400;
+  font-weight: 200;
 }
 .mission-right {
   text-align: left;
