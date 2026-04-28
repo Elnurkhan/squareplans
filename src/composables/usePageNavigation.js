@@ -44,14 +44,13 @@ function navigate(target) {
   const fromIdx = currentPage.value
   if (target === fromIdx) return
 
-  // Update lenis/body lock state immediately so the pinned section doesn't
-  // tick during the swipe.
+  // Lock scroll only when LEAVING page 1. When returning to page 1 we
+  // defer the unlock until `onComplete` — restarting Lenis or letting the
+  // mobile URL bar reflow mid-animation triggers ScrollTrigger.update()
+  // / 100vh changes that nudge the pinned `.intro` a few pixels upward
+  // (visible as a tiny black border at the bottom + "photos jumping").
   const lenis = lenisGetter?.()
-  if (target === 1) {
-    document.documentElement.style.overflow = ''
-    document.body.style.overflow = ''
-    lenis?.start()
-  } else {
+  if (target !== 1) {
     document.documentElement.style.overflow = 'hidden'
     document.body.style.overflow = 'hidden'
     lenis?.stop()
@@ -101,6 +100,12 @@ function navigate(target) {
           introEl.style.top = savedIntroTop
           savedIntroTop = null
         }
+        // Now that the pin is back in its real viewport position, it's
+        // safe to release the body and resume Lenis — any ScrollTrigger
+        // updates that fire from here on operate on a coherent layout.
+        document.documentElement.style.overflow = ''
+        document.body.style.overflow = ''
+        lenis?.start()
       }
     },
   })
