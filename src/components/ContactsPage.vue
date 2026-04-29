@@ -10,7 +10,7 @@
       <div class="hero-row">
         <div class="half-photo reveal" style="--i: 2">
           <img
-            :src="`${$base}Ellipse%207.png`"
+            :src="`${$base}Rectangle%2091.png`"
             alt="SquarePlans"
             loading="lazy"
           />

@@ -39,7 +39,7 @@
           </h2>
 
           <p class="lede reveal" style="--i: 5">
-            Поэтому нас выбирают клиенты, которые готовы доверить нам
+            Поэтому нас выбирают клиенты, которые готовы доверить<br> нам
             своё пространство, стиль и&nbsp;время.
           </p>
 
@@ -117,7 +117,7 @@ onBeforeUnmount(() => registerPage(2, null))
 /* ── Badge ── */
 .badge {
   display: flex;
-  align-items: center;
+  align-items: start;
   gap: 0.7rem;
   font-size: 0.78rem;
   line-height: 1.5;
