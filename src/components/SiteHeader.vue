@@ -1,22 +1,25 @@
 <template>
   <header class="site-header" ref="headerEl">
     <nav class="site-nav">
-      <a href="#" :class="{ active: currentPage === 1 }" @click.prevent="onNavClick(1)">{{ t('nav.projects') }}</a>
-      <a href="#" :class="{ active: currentPage === 2 }" @click.prevent="onNavClick(2)">{{ t('nav.about') }}</a>
-      <a href="#" :class="{ active: currentPage === 3 }" @click.prevent="onNavClick(3)">{{ t('nav.contacts') }}</a>
+      <a href="#" :class="{ active: currentPage === 1 }" :style="{ pointerEvents: isHeaderDisabled ? 'none' : 'auto' }" @click.prevent="onNavClick(1)">{{ t('nav.projects') }}</a>
+      <a href="#" :class="{ active: currentPage === 2 }" :style="{ pointerEvents: isHeaderDisabled ? 'none' : 'auto' }" @click.prevent="onNavClick(2)">{{ t('nav.about') }}</a>
+      <a href="#" :class="{ active: currentPage === 3 }" :style="{ pointerEvents: isHeaderDisabled ? 'none' : 'auto' }" @click.prevent="onNavClick(3)">{{ t('nav.contacts') }}</a>
     </nav>
   </header>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, inject, computed, onMounted } from 'vue'
 import gsap from 'gsap'
 import { useI18n } from '@/composables/useI18n'
 import { usePageNavigation } from '@/composables/usePageNavigation'
 
 const { t } = useI18n()
 const { currentPage, navigate } = usePageNavigation()
+const introComplete = inject('introComplete')
 const headerEl = ref(null)
+
+const isHeaderDisabled = computed(() => currentPage.value === 1 && !introComplete.value)
 
 function onNavClick(idx) {
   navigate(idx)

@@ -71,6 +71,7 @@ import PhotoLightbox from '@/components/PhotoLightbox.vue'
 import { GlassCardLayer } from '@/webgl/GlassCardLayer'
 
 const lenisRef = inject('lenis')
+const introComplete = inject('introComplete')
 
 const introEl = ref(null)
 const stickyEl = ref(null)
@@ -285,8 +286,16 @@ onMounted(() => {
     bottomEl: bottomEl.value,
     thumbEls: thumbEls.value,
     cur: cards.cur,
-    onScrollProgress: cards.setProgress,
-    onReady: () => gsap.ticker.add(tickFn),
+    onScrollProgress: (progress) => {
+      cards.setProgress(progress)
+      if (progress >= 0.99 && !introComplete.value) {
+        introComplete.value = true
+      }
+    },
+    onReady: () => {
+      gsap.ticker.add(tickFn)
+      introComplete.value = true
+    },
   })
 
   // Mount GL glass-card overlay & preload textures

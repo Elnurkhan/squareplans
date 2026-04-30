@@ -1,7 +1,7 @@
 <template>
   <section class="page-overlay page-about" :class="{ 'is-active': isActive }" ref="rootEl" data-lenis-prevent>
     <div class="about-scroll">
-      <header class="badge reveal" style="--i: 0">
+      <header class="badge badge-desktop reveal" style="--i: 0">
         <span class="badge-mark" aria-hidden="true">◆</span>
         <span class="badge-text">
           Выпускник Московского архитектурного<br>института с&nbsp;отличием
@@ -24,7 +24,7 @@
             и&nbsp;основатель студии&nbsp;<img class="brand-logo" :src="`${$base}logo.svg`" alt="SquarePlans" />
           </h1>
 
-          <p class="lede reveal" style="--i: 3">
+          <p class="lede lede-main reveal" style="--i: 3">
             Мой подход&nbsp;– это&nbsp;не&nbsp;просто про&nbsp;эстетику,
             а&nbsp;про&nbsp;жизнь внутри пространства. Я&nbsp;привык глубоко
             погружаться в&nbsp;ритм и&nbsp;привычки заказчика, чтобы создавать
@@ -32,6 +32,13 @@
             отражает характер и&nbsp;становится естественным продолжением
             вашей повседневности.
           </p>
+
+          <header class="badge badge-mobile" style="--i: 0">
+            <span class="badge-mark" aria-hidden="true">◆</span>
+            <span class="badge-text">
+              Выпускник Московского архитектурного<br>института с&nbsp;отличием
+            </span>
+          </header>
 
           <h2 class="quote reveal" style="--i: 4">
             Каждый проект нашей студии&nbsp;— это&nbsp;не&nbsp;шаблонное
@@ -115,7 +122,7 @@ onBeforeUnmount(() => registerPage(2, null))
 }
 
 /* ── Badge ── */
-.badge {
+.badge-desktop {
   display: flex;
   align-items: start;
   gap: 0.7rem;
@@ -133,6 +140,10 @@ onBeforeUnmount(() => registerPage(2, null))
 .badge-text {
   flex: 1;
   font-weight: 200;
+}
+
+.badge-mobile {
+  display: none;
 }
 
 /* ── Two-column hero — fills remaining height (100vh layout) ── */
@@ -191,9 +202,14 @@ onBeforeUnmount(() => registerPage(2, null))
   margin: 0;
   max-width: 540px;
 }
+
+.lede-main {
+  margin-bottom: 36px;
+}
+
 /* Explicit per-pair gaps in the text column. */
 .title + .lede { margin-top: 12px; }
-.lede + .quote { margin-top: 36px; }
+.lede-main + .quote { margin-top: 36px; }
 .quote + .lede { margin-top: 12px; }
 /* Both auto: free vertical space splits equally before & after stat-row,
    centering it between the lede above and the mission-section below.
@@ -273,7 +289,7 @@ onBeforeUnmount(() => registerPage(2, null))
 }
 
 /* ── Responsive ── */
-@media (max-width: 1024px) {
+@media (max-width: 640px) {
   /* On narrow screens 100vh + two columns can't fit — fall back to a normal
      vertical stack with internal scroll. */
   .page-overlay {
@@ -285,26 +301,32 @@ onBeforeUnmount(() => registerPage(2, null))
   .page-overlay::-webkit-scrollbar { width: 0; height: 0; }
   .page-overlay { scrollbar-width: none; }
 
+  .badge-desktop {
+    display: none;
+  }
+
+  .badge-mobile {
+    display: flex;
+    align-items: start;
+    gap: 0.7rem;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: rgba(20, 20, 26, 0.95);
+    max-width: 320px;
+    font-weight: 400;
+    order: 3;
+    margin-bottom: 20px;
+  }
+
   .about-scroll {
     height: auto;
-    padding: 5rem 33px 4rem;
+    padding: 6rem 16px 0;
     grid-template-rows: auto auto auto;
-    gap: 2rem;
-  }
-  .about-grid {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    align-items: start;
-  }
-  .photo-col {
-    height: auto;
   }
   .founder-photo {
     height: auto;
     aspect-ratio: 4 / 5;
-  }
-  .text-col {
-    justify-content: flex-start;
+    margin-bottom: 36px;
   }
   /* Disable staggered reveal animation on mobile — content is shown instantly. */
   .is-active .reveal {
@@ -318,17 +340,54 @@ onBeforeUnmount(() => registerPage(2, null))
   .mission-right {
     text-align: left;
   }
+
+  .about-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .text-col {
+    display: contents;
+  }
+
+  .title {
+    order: 1;
+    margin-bottom: 18px;
+    font-size: 28px;
+  }
+
+  .lede-main {
+    order: 2;
+    margin-bottom: 36px;
+  }
+
+  .photo-col {
+    order: 4;
+    margin-left: -16px;
+    margin-right: -16px;
+  }
+
+  .founder-photo {
+    width: 100vw;
+    max-width: none;
+  }
+
+  .lede {
+    margin-bottom: 36px;
+  }
+
+  .stat-num {
+    margin-right: 12px;
+    margin-bottom: 36px;
+  }
+
+  .quote,
+  .stat-row,
+  .mission-section,
+  .lede:not(.lede-main) {
+    order: 5;
+  }
 }
 
-@media (max-width: 640px) {
-  .about-scroll {
-    padding: 4.5rem 33px 3rem;
-  }
-  .badge {
-    font-size: 0.72rem;
-  }
-  .text-col {
-    gap: 1.4rem;
-  }
-}
 </style>

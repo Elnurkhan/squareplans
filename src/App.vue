@@ -32,7 +32,9 @@ let lenisTicker
 const lenisRef = ref(null)
 const scrollLineEl = ref(null)
 const mainPageEl = ref(null)
+const introComplete = ref(false)
 provide('lenis', lenisRef)
+provide('introComplete', introComplete)
 
 const { setLenisGetter, registerPage } = usePageNavigation()
 setLenisGetter(() => lenisRef.value)
