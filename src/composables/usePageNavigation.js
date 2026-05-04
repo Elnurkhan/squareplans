@@ -1,6 +1,5 @@
 import { ref } from 'vue'
 import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 // Page indices: 1 = Проекты, 2 = О нас, 3 = Контакты.
 // Conceptual model: pages are laid out in a horizontal row, each occupying
@@ -15,16 +14,13 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 //
 // When jumping from 1 to 3, ALL three pages animate at once. The middle
 // page (О нас) traverses through viewport mid-transition — exactly the
-// requested behaviour.
+// requested behaviour. Page 1's visual surface is the pinned `.intro`, so
+// the row math is applied to that element instead of the scrolled wrapper.
 const currentPage = ref(1)
 const isAnimating = ref(false)
 
 const pageRefs = Object.create(null)
 let lenisGetter = null
-// Snapshot of `.intro` inline `top` before we apply scroll compensation,
-// so we can restore it exactly (pin may have had `top: 0` already).
-let savedIntroTop = null
-let savedIntroXPercent = null
 
 const DURATION = 0.85
 const EASE = 'power3.inOut'
@@ -57,55 +53,14 @@ function navigate(target) {
     lenis?.stop()
   }
 
-  // Pinned-section scroll compensation.
-  //
-  // Background: the .intro section inside the main page is held in place by
-  // ScrollTrigger via `position: fixed; top: 0`. When we apply a transform
-  // to its parent (.main-page), the parent becomes the containing block for
-  // any fixed-position descendants. .main-page's top in viewport coords is
-  // `-window.scrollY` (it sits above the viewport whenever the user has
-  // scrolled). The pin's `top: 0` then resolves to viewport `-scrollY`,
-  // making the section snap upwards and exposing the page background below.
-  //
-  // To prevent that snap, before applying the transform we shift the pin's
-  // top by exactly `scrollY` so the visual position stays put. On the way
-  // back to main we strip both the transform and the compensation in the
-  // same frame so .intro snaps cleanly back to its original viewport spot.
   const mainEl = pageRefs[1]
   const introEl = mainEl ? mainEl.querySelector('.intro') : null
-
-  if (fromIdx === 1 && target !== 1 && mainEl) {
-    const scrollY = window.scrollY || window.pageYOffset || 0
-    // Force an identity transform synchronously so the containing block
-    // exists *before* we shift `.intro`. Otherwise a single browser frame
-    // would render with the new top but the old containing block — a flash.
-    gsap.set(mainEl, { xPercent: 0 })
-    if (introEl) {
-      // Snapshot whatever was there (pin may have set `top: 0`); we'll
-      // restore it byte-for-byte on the way back instead of clearing it.
-      savedIntroTop = introEl.style.top
-      introEl.style.top = `${scrollY}px`
-      savedIntroXPercent = gsap.getProperty(introEl, 'xPercent')
-    }
-  }
 
   isAnimating.value = true
   const tl = gsap.timeline({
     onComplete: () => {
       isAnimating.value = false
-      if (target === 1 && mainEl) {
-        // Strip transform AND restore .intro top in the same frame —
-        // containing block disappears at the same instant the inline top
-        // resets, so there's no visual jump.
-        gsap.set(mainEl, { clearProps: 'transform,xPercent' })
-        if (introEl && savedIntroTop !== null) {
-          introEl.style.top = savedIntroTop
-          if (savedIntroXPercent !== null) {
-            gsap.set(introEl, { xPercent: savedIntroXPercent })
-            savedIntroXPercent = null
-          }
-          savedIntroTop = null
-        }
+      if (target === 1) {
         // Now that the pin is back in its real viewport position, it's
         // safe to release the body and resume Lenis — any ScrollTrigger
         // updates that fire from here on operate on a coherent layout.
@@ -116,12 +71,12 @@ function navigate(target) {
     },
   })
 
-  const animateIntroAsPage = introEl && (fromIdx === 1 || target === 1)
+  const introAsPage = Boolean(introEl)
 
   for (const idx of [1, 2, 3]) {
     const el = pageRefs[idx]
     if (!el) continue
-    if (idx === 1 && animateIntroAsPage) continue
+    if (idx === 1 && introAsPage) continue
     const targetPercent = (idx - target) * 100
     gsap.killTweensOf(el)
     tl.to(el, {
@@ -131,10 +86,11 @@ function navigate(target) {
     }, 0)
   }
 
-  // ScrollTrigger pins `.intro` with fixed positioning. On mobile browsers a
-  // pinned/fixed child does not reliably follow its transformed page wrapper,
-  // so animate the pin itself in lockstep with page 1 during horizontal nav.
-  if (animateIntroAsPage) {
+  // Page 1 is the ScrollTrigger-pinned intro. Animate that fixed surface
+  // directly instead of transforming `.main-page`; transforming the scrolled
+  // parent makes fixed descendants resolve against it and can reveal the dark
+  // body background for a frame on mobile.
+  if (introAsPage) {
     const targetPercent = (1 - target) * 100
     gsap.killTweensOf(introEl)
     tl.to(introEl, {
