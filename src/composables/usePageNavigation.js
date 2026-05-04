@@ -24,6 +24,7 @@ let lenisGetter = null
 // Snapshot of `.intro` inline `top` before we apply scroll compensation,
 // so we can restore it exactly (pin may have had `top: 0` already).
 let savedIntroTop = null
+let savedIntroXPercent = null
 
 const DURATION = 0.85
 const EASE = 'power3.inOut'
@@ -84,6 +85,7 @@ function navigate(target) {
       // restore it byte-for-byte on the way back instead of clearing it.
       savedIntroTop = introEl.style.top
       introEl.style.top = `${scrollY}px`
+      savedIntroXPercent = gsap.getProperty(introEl, 'xPercent')
     }
   }
 
@@ -98,6 +100,10 @@ function navigate(target) {
         gsap.set(mainEl, { clearProps: 'transform,xPercent' })
         if (introEl && savedIntroTop !== null) {
           introEl.style.top = savedIntroTop
+          if (savedIntroXPercent !== null) {
+            gsap.set(introEl, { xPercent: savedIntroXPercent })
+            savedIntroXPercent = null
+          }
           savedIntroTop = null
         }
         // Now that the pin is back in its real viewport position, it's
@@ -110,12 +116,28 @@ function navigate(target) {
     },
   })
 
+  const animateIntroAsPage = introEl && (fromIdx === 1 || target === 1)
+
   for (const idx of [1, 2, 3]) {
     const el = pageRefs[idx]
     if (!el) continue
+    if (idx === 1 && animateIntroAsPage) continue
     const targetPercent = (idx - target) * 100
     gsap.killTweensOf(el)
     tl.to(el, {
+      xPercent: targetPercent,
+      duration: DURATION,
+      ease: EASE,
+    }, 0)
+  }
+
+  // ScrollTrigger pins `.intro` with fixed positioning. On mobile browsers a
+  // pinned/fixed child does not reliably follow its transformed page wrapper,
+  // so animate the pin itself in lockstep with page 1 during horizontal nav.
+  if (animateIntroAsPage) {
+    const targetPercent = (1 - target) * 100
+    gsap.killTweensOf(introEl)
+    tl.to(introEl, {
       xPercent: targetPercent,
       duration: DURATION,
       ease: EASE,
