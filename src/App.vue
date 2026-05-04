@@ -47,6 +47,7 @@ onMounted(() => {
     wheelMultiplier: 1.8,
     touchMultiplier: isMobile ? 7 : 5,
     lerp: isMobile ? 0.15 : 0.1,
+    overscroll: false,
   })
   lenis.on('scroll', (e) => {
     ScrollTrigger.update(e)
@@ -79,18 +80,26 @@ onUnmounted(() => {
 
 html {
   scrollbar-width: none;
+  background: #fafafa;
+  overscroll-behavior: none;
 }
 html::-webkit-scrollbar {
   display: none;
 }
 
 body {
-  background: #0a0a0f;
-  color: #e0e0e0;
+  background: #fafafa;
+  color: #14131a;
   font-family: 'Petrov Sans Trial', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
+  overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+#app,
+.main-page {
+  background: #fafafa;
 }
 
 /* Main-page wrapper. Transform applied via GSAP from usePageNavigation.
