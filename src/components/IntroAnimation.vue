@@ -177,10 +177,15 @@ function onTouchMove(e) {
   }
 
   // Phase 8: direction-locked, horizontal only
+  const progress = cards.getProgress()
+  const spreadScrollLocked = progress >= 0.96
   if (!touchLocked) {
     const dx = Math.abs(t.clientX - touchStartX)
     const dy = Math.abs(t.clientY - touchStartY)
     if (dx + dy > 8) touchLocked = dx > dy ? 'h' : 'v'
+  }
+  if (spreadScrollLocked && touchLocked !== 'h') {
+    e.preventDefault()
   }
   if (touchLocked === 'h') {
     e.preventDefault()
