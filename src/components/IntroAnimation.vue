@@ -94,7 +94,7 @@ const mouseTracking = useMouseTracking()
 const timeline = useIntroTimeline()
 const cards = useCardState()
 const glCardLayer = new GlassCardLayer()
-const { currentPage, navigate } = usePageNavigation()
+const { currentPage, isAnimating, navigate } = usePageNavigation()
 
 // When returning to the main page from an overlay, snap card cur→tgt on the
 // next tick so we don't see a brief lerp catch-up (e.g. mobile address bar
@@ -251,7 +251,7 @@ function tickFn(time, deltaTime) {
   // Skip the entire intro render loop while an overlay page is active.
   // Cards live inside the main wrapper that's been swiped off-viewport, so
   // there's nothing to look at; saves ~24+21 lerps + DOM writes per frame.
-  if (currentPage.value !== 1) return
+  if (currentPage.value !== 1 && !isAnimating.value) return
 
   mouseTracking.update()
   cards.tick({
