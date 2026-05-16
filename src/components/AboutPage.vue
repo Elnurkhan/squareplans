@@ -21,7 +21,7 @@
         <div class="text-col">
           <h1 class="title reveal" style="--i: 2">
             Илья&nbsp;— архитектор-дизайнер<br>
-            и&nbsp;основатель студии&nbsp;<img class="brand-logo" :src="`${$base}logo.svg`" alt="SquarePlans" />
+            и&nbsp;основатель студии&nbsp;SquarePlans
           </h1>
 
           <p class="lede lede-main reveal" style="--i: 3">
@@ -186,13 +186,6 @@ onBeforeUnmount(() => registerPage(2, null))
   color: #14131a;
   margin: 0;
 }
-.title .brand-logo {
-  display: inline-block;
-  height: 0.7em;
-  width: auto;
-  vertical-align: baseline;
-}
-
 .lede {
   font-size: clamp(0.85rem, 0.95vw, 0.95rem);
   line-height: 1.2;
