@@ -16,6 +16,11 @@ export function getCircleR(vw, vh) {
   return CIRCLE_R
 }
 
+export function getWideArcBoost(vw) {
+  if (vw < 1800) return 1
+  return Math.min(1.28, 1 + ((vw - 1800) / 1600) * 0.3)
+}
+
 export function lerp(a, b, t) {
   return a + (b - a) * t
 }

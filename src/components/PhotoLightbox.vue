@@ -2,6 +2,12 @@
   <Teleport to="body">
     <Transition name="lightbox">
       <div v-if="visible" class="lightbox-overlay" @click.self="close">
+        <button class="lightbox-back" @click="close" aria-label="Вернуться к галерее">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <polyline points="15,5 8,12 15,19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
         <button class="lightbox-close" @click="close" aria-label="Закрыть">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <line x1="2" y1="2" x2="18" y2="18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -160,7 +166,29 @@ onBeforeUnmount(() => {
   transition: opacity 0.2s;
 }
 
+.lightbox-back {
+  position: absolute;
+  top: 1.2rem;
+  left: 1.2rem;
+  z-index: 3;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  color: #1a1a1a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+
 .lightbox-close:hover {
+  opacity: 1;
+}
+
+.lightbox-back:hover {
   opacity: 1;
 }
 
@@ -289,9 +317,21 @@ onBeforeUnmount(() => {
     height: 32px;
   }
 
+  .lightbox-back {
+    top: 0.8rem;
+    left: 0.8rem;
+    width: 32px;
+    height: 32px;
+  }
+
   .lightbox-close svg {
     width: 16px;
     height: 16px;
+  }
+
+  .lightbox-back svg {
+    width: 18px;
+    height: 18px;
   }
 
   .lightbox-main {

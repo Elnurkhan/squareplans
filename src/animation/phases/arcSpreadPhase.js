@@ -1,10 +1,11 @@
-import { COUNT, lerp } from '../constants'
+import { COUNT, getWideArcBoost, lerp } from '../constants'
 
 export function compute(ctx) {
   const { progress, tgt, tgtText, tgtArc, arcCY, arcRadius, arcScale, centerIdx, halfCount, angularStep, centerAngle } = ctx
 
   const scrollStep = (progress - 0.55) / 0.20
   const spreadFactor = 3
+  const arcScaleBoost = getWideArcBoost(ctx.vw ?? window.innerWidth)
 
   for (let i = 0; i < COUNT; i++) {
     let rawDist = i - centerIdx
@@ -16,7 +17,7 @@ export function compute(ctx) {
     tgt[i].x = Math.cos(angle) * arcRadius
     tgt[i].y = arcCY + Math.sin(angle) * arcRadius
     tgt[i].r = (angle * 180 / Math.PI) + 90
-    tgt[i].s = arcScale
+    tgt[i].s = arcScale * arcScaleBoost
     tgt[i].wx = 1
     tgt[i].z = 0
     tgt[i].rx = 0

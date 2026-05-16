@@ -15,7 +15,13 @@ const scatterFactors = [
 export function useIntroTimeline() {
   let masterTl = null
   let gsapCtx = null
+  let scrollStart = 0
   let scrollEnd = 0
+
+  function captureScrollBounds(self) {
+    scrollStart = self.start
+    scrollEnd = self.end
+  }
 
   function create({ introEl, stageEl, centerEl, bottomEl, thumbEls, cur, onScrollProgress, onReady }) {
     const vw = window.innerWidth
@@ -77,11 +83,12 @@ export function useIntroTimeline() {
             start: 'top top',
             end: () => `+=${window.innerHeight * (window.innerWidth < 1024 ? 7 : 10)}`,
             onUpdate: (self) => {
-              scrollEnd = self.end
+              captureScrollBounds(self)
               onScrollProgress(self.progress)
             },
+            onRefresh: captureScrollBounds,
           })
-          scrollEnd = st.end
+          captureScrollBounds(st)
         })
 
         onReady()
@@ -157,5 +164,14 @@ export function useIntroTimeline() {
     return scrollEnd
   }
 
-  return { create, destroy, getScrollEnd }
+  function getScrollPoint(progress) {
+    return scrollStart + (scrollEnd - scrollStart) * progress
+  }
+
+  function finishIntro() {
+    if (!masterTl || masterTl.progress() >= 1) return
+    masterTl.progress(1, false)
+  }
+
+  return { create, destroy, getScrollEnd, getScrollPoint, finishIntro }
 }

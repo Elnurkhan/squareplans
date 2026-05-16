@@ -57,11 +57,23 @@
     :start-index="lightboxStartIdx"
     @close="lightboxOpen = false"
   />
+
+  <button
+    v-show="cascadeBackVisible && currentPage === 1"
+    class="cascade-back"
+    @click.stop="handleCascadeBack"
+    aria-label="Вернуться к проектам"
+  >
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <polyline points="15,5 8,12 15,19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
 </template>
 
 <script setup>
 import { ref, computed, inject, watch, onMounted, onBeforeUnmount } from 'vue'
 import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useMouseTracking } from '@/composables/useMouseTracking'
 import { useIntroTimeline } from '@/composables/useIntroTimeline'
 import { useCardState } from '@/composables/useCardState'
@@ -114,19 +126,120 @@ let dragPreventsClick = false
 
 const lightboxOpen = ref(false)
 const lightboxStartIdx = ref(0)
+const cascadeBackVisible = ref(false)
 let p9ImagesLoaded = false
 
 const p9LightboxPhotos = cards.p9Thumbnails.map(t => ({
   src: t.src.replace('/800/1120', '/1600/2240'),
 }))
+const SPREAD_JUMP_PROGRESS = 0.98
+const SPREAD_JUMP_DESKTOP_DURATION = 2.2
+const SPREAD_JUMP_MOBILE_DURATION = 3.2
+const SPREAD_JUMP_EASE = (t) => t * t * t * (t * (t * 6 - 15) + 10)
+let spreadJumpTween = null
+let spreadJumpReset = null
+let spreadJumping = false
+
+function getSpreadJumpDuration() {
+  return window.innerWidth < 1024 ? SPREAD_JUMP_MOBILE_DURATION : SPREAD_JUMP_DESKTOP_DURATION
+}
+
+function finishSpreadJump() {
+  spreadJumping = false
+  spreadJumpTween?.kill()
+  spreadJumpTween = null
+  spreadJumpReset?.kill()
+  spreadJumpReset = null
+  cards.setProgress(SPREAD_JUMP_PROGRESS)
+  cards.snap()
+  ScrollTrigger.update()
+}
+
+function jumpIntroToSpreadPoint() {
+  if (spreadJumping) return
+  timeline.finishIntro()
+  ScrollTrigger.refresh()
+
+  const y = timeline.getScrollPoint(SPREAD_JUMP_PROGRESS)
+  if (!Number.isFinite(y) || y <= 0) return
+
+  const l = lenisRef.value
+  const duration = getSpreadJumpDuration()
+  l?.resize()
+  spreadJumping = true
+  spreadJumpTween?.kill()
+  spreadJumpReset?.kill()
+
+  if (l?.scrollTo) {
+    l.scrollTo(y, {
+      duration,
+      easing: SPREAD_JUMP_EASE,
+      force: true,
+      lock: true,
+      onComplete: finishSpreadJump,
+    })
+    spreadJumpReset = gsap.delayedCall(duration + 0.25, finishSpreadJump)
+    return
+  }
+
+  const scrollState = { y: window.scrollY }
+  spreadJumpTween = gsap.to(scrollState, {
+    y,
+    duration,
+    ease: 'sine.inOut',
+    onUpdate: () => {
+      window.scrollTo(0, scrollState.y)
+      ScrollTrigger.update()
+    },
+    onComplete: finishSpreadJump,
+  })
+}
+
+function cancelSpreadJump() {
+  if (!spreadJumping) return
+  spreadJumping = false
+  spreadJumpTween?.kill()
+  spreadJumpTween = null
+  spreadJumpReset?.kill()
+  spreadJumpReset = null
+}
+
+function snapSpreadJumpToEnd() {
+  if (!spreadJumping) return
+  const y = timeline.getScrollPoint(SPREAD_JUMP_PROGRESS)
+  const l = lenisRef.value
+  if (Number.isFinite(y) && y > 0) {
+    window.scrollTo(0, y)
+    l?.scrollTo?.(y, { immediate: true, force: true })
+    l?.raf(performance.now())
+    cards.setProgress(SPREAD_JUMP_PROGRESS)
+    cards.snap()
+    ScrollTrigger.update()
+  }
+  cancelSpreadJump()
+}
 
 function handleThumbClick() {
   if (dragPreventsClick) {
     dragPreventsClick = false
     return
   }
+  if (spreadJumping) {
+    snapSpreadJumpToEnd()
+    return
+  }
+
+  const jumpToSpread = cards.getProgress() <= 0.55 && !cards.isInPhase9()
+  if (jumpToSpread) {
+    jumpIntroToSpreadPoint()
+    return
+  }
+
+  if (!introComplete.value) return
+
   cards.onThumbClick()
   if (cards.isInPhase9()) {
+    cascadeBackVisible.value = true
     lenisRef.value?.stop()
   }
 }
@@ -225,6 +338,12 @@ function onTouchEnd(e) {
 function exitPhase9WithLenis() {
   const l = lenisRef.value
   if (l) l.start()
+  cascadeBackVisible.value = false
+}
+
+function handleCascadeBack() {
+  cards.forceExitPhase9()
+  exitPhase9WithLenis()
 }
 
 function onWheel(e) {
@@ -326,6 +445,7 @@ onBeforeUnmount(() => {
   timeline.destroy()
   gsap.ticker.remove(tickFn)
   mouseTracking.stop()
+  cancelSpreadJump()
   glCardLayer.destroy()
 })
 </script>
@@ -406,6 +526,7 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   perspective: none;
+  pointer-events: none;
 }
 
 .p9-thumb {
@@ -541,6 +662,42 @@ onBeforeUnmount(() => {
     margin-left: -48px;
     margin-top: -69px;
     border-radius: 12px;
+  }
+}
+
+.cascade-back {
+  position: fixed;
+  top: 1.2rem;
+  left: 1.2rem;
+  z-index: 220;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  color: #1a1a1a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+
+.cascade-back:hover {
+  opacity: 1;
+}
+
+@media (max-width: 1023px) {
+  .cascade-back {
+    top: 0.8rem;
+    left: 0.8rem;
+    width: 32px;
+    height: 32px;
+  }
+
+  .cascade-back svg {
+    width: 18px;
+    height: 18px;
   }
 }
 </style>
