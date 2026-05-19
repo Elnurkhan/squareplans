@@ -15,13 +15,13 @@
       </div>
       <div class="pp-po-gallery">
         <div class="pp-po-img pp-po-side">
-          <img :src="`${$base}projects/afi/1.jpg`" alt="" loading="lazy" />
+          <img :src="`${$base}projects-optimized/afi/1.jpg`" alt="" loading="lazy" />
         </div>
         <div class="pp-po-img pp-po-center" ref="poCenterImg">
-          <img :src="`${$base}projects/level/1.jpg`" alt="" loading="lazy" />
+          <img :src="`${$base}projects-optimized/level/1.jpg`" alt="" loading="lazy" />
         </div>
         <div class="pp-po-img pp-po-side">
-          <img :src="`${$base}projects/mosfilm/001.jpg`" alt="" loading="lazy" />
+          <img :src="`${$base}projects-optimized/mosfilm/001.jpg`" alt="" loading="lazy" />
         </div>
       </div>
     </section>
@@ -37,7 +37,7 @@
         </div>
       </div>
       <div class="pp-ae-photo rv rv-img" style="transition-delay:.2s">
-        <img :src="`${$base}projects/n35/1.jpg`" alt="" loading="lazy" />
+        <img :src="`${$base}projects-optimized/n35/1.jpg`" alt="" loading="lazy" />
       </div>
     </section>
 
@@ -48,7 +48,7 @@
         {{ t('pp.mission.quote') }}
       </h2>
       <div class="pp-mission-photo rv rv-img" style="transition-delay:.2s">
-        <img :src="`${$base}projects/n100/7.jpg`" alt="" loading="lazy" />
+        <img :src="`${$base}projects-optimized/n100/6.jpg`" alt="" loading="lazy" />
       </div>
     </section>
 
@@ -57,7 +57,7 @@
     <!-- ── Hero banner (sticky, revealed behind content) ── -->
     <section class="pp-banner" ref="bannerEl">
       <div class="pp-banner-img rv rv-img" ref="bannerImgEl">
-        <img :src="`${$base}projects/afi/3.jpg`" alt="" loading="lazy" />
+        <img :src="`${$base}projects-optimized/afi/3.jpg`" alt="" loading="lazy" />
         <p class="pp-banner-text" v-html="t('pp.banner.text')"></p>
       </div>
     </section>

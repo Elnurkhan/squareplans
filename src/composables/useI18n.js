@@ -36,10 +36,23 @@ const translations = {
 
   // Project names
   'project.afi': { Ru: 'AFI Park Воронцовский', En: 'AFI Park Vorontsovsky' },
-  'project.level': { Ru: 'Level Мичуринский', En: 'Level Michurinsky' },
+  'project.level': { Ru: 'Level Москва, 48 кв.м', En: 'Level Moscow, 48 sqm' },
   'project.mosfilm': { Ru: 'Мосфильмовский', En: 'Mosfilmovsky' },
   'project.n100': { Ru: 'Настоящее 100 кв.м', En: 'Nastoyashee 100 sqm' },
   'project.n35': { Ru: 'Настоящее 35 кв.м', En: 'Nastoyashee 35 sqm' },
+  'project.mntk': { Ru: 'МНТК', En: 'MNTK' },
+  'project.afi.title': { Ru: 'AFI Park', En: 'AFI Park' },
+  'project.afi.subtitle': { Ru: 'Москва, 135 кв.м', En: 'Moscow 135 sqm' },
+  'project.level.title': { Ru: 'Level', En: 'Level Moscow' },
+  'project.level.subtitle': { Ru: 'Москва, 48 кв.м', En: '48 sqm' },
+  'project.mosfilm.title': { Ru: 'Мосфильмовский', En: 'Mosfilmovsky' },
+  'project.mosfilm.subtitle': { Ru: 'Москва, 100 кв.м', En: 'Moscow, 100 sqm' },
+  'project.n100.title': { Ru: 'Настоящее', En: 'Nastoyashee' },
+  'project.n100.subtitle': { Ru: 'Москва, 100 кв.м', En: 'Moscow, 100 sqm' },
+  'project.n35.title': { Ru: 'Настоящее', En: 'Nastoyashee' },
+  'project.n35.subtitle': { Ru: 'Москва, 35 кв.м', En: 'Moscow, 35 sqm' },
+  'project.mntk.title': { Ru: 'МНТК', En: 'MNTK' },
+  'project.mntk.subtitle': { Ru: 'Москва, 212 кв.м', En: 'Moscow, 212 sqm' },
 
   // ProjectPage
   'pp.projects': { Ru: 'Проекты', En: 'Projects' },

@@ -29,21 +29,91 @@ export function useCardState() {
   const p8Dim = Array.from({ length: COUNT }, () => 0)
   const p9Hover = Array.from({ length: P9_COUNT }, () => 0)
 
-  // Project name keys for spread phase hover (one per visible card, TOTAL_CARDS + 1)
-  const projectNameKeys = [
-    'project.afi',
-    'project.level',
-    'project.mosfilm',
-    'project.n100',
-    'project.n35',
-    'project.afi',
+  // Project label keys for spread phase hover (one per visible card, TOTAL_CARDS + 1)
+  const projectLabelKeys = [
+    { title: 'project.level.title', subtitle: 'project.level.subtitle', album: 'level' },
+    { title: 'project.afi.title', subtitle: 'project.afi.subtitle', album: 'afi' },
+    { title: 'project.n35.title', subtitle: 'project.n35.subtitle', album: 'n35' },
+    { title: 'project.mosfilm.title', subtitle: 'project.mosfilm.subtitle', album: 'mosfilm' },
+    { title: 'project.n100.title', subtitle: 'project.n100.subtitle', album: 'n100' },
+    { title: 'project.mntk.title', subtitle: 'project.mntk.subtitle', album: 'mntk' },
   ]
+
+  const spreadProjectPhotos = [
+    'projects/level/5.jpg',
+    'projects/afi/9.jpg',
+    'projects/n35/14.jpg',
+    'projects/mosfilm/010.jpg',
+    'projects/n100/5.jpg',
+    'projects/Ресторан МНТК им.Федорова/2.jpg',
+  ]
+
+  const projectAlbums = {
+    level: [
+      'projects/level/1.jpg', 'projects/level/2.jpg', 'projects/level/3.jpg', 'projects/level/4.jpg', 'projects/level/5.jpg',
+      'projects/level/6.jpg', 'projects/level/7.jpg', 'projects/level/8.jpg', 'projects/level/9.jpg', 'projects/level/10.jpg',
+      'projects/level/11.jpg', 'projects/level/12.jpg', 'projects/level/13.jpg', 'projects/level/14.jpg', 'projects/level/15.jpg',
+    ],
+    afi: [
+      'projects/afi/1.jpg', 'projects/afi/2.jpg', 'projects/afi/3.jpg', 'projects/afi/4.jpg', 'projects/afi/5.jpg',
+      'projects/afi/6.jpg', 'projects/afi/7.jpg', 'projects/afi/8.jpg', 'projects/afi/9.jpg', 'projects/afi/10.jpg',
+      'projects/afi/11.jpg', 'projects/afi/12.jpg', 'projects/afi/13.jpg', 'projects/afi/14.jpg', 'projects/afi/15.jpg',
+      'projects/afi/16.jpg', 'projects/afi/17.jpg', 'projects/afi/18.jpg', 'projects/afi/19.jpg',
+    ],
+    n35: [
+      'projects/n35/1.jpg', 'projects/n35/2.jpg', 'projects/n35/3.jpg', 'projects/n35/4.jpg', 'projects/n35/5.jpg',
+      'projects/n35/6.jpg', 'projects/n35/7.jpg', 'projects/n35/8.jpg', 'projects/n35/10.jpg', 'projects/n35/11.jpg',
+      'projects/n35/12.jpg', 'projects/n35/13.jpg', 'projects/n35/14.jpg', 'projects/n35/15.jpg', 'projects/n35/16.jpg',
+      'projects/n35/19.jpg', 'projects/n35/20.jpg', 'projects/n35/21.jpg', 'projects/n35/22.jpg', 'projects/n35/23.jpg',
+      'projects/n35/24.jpg', 'projects/n35/25.jpg',
+    ],
+    mosfilm: [
+      'projects/mosfilm/001.jpg', 'projects/mosfilm/002.jpg', 'projects/mosfilm/003.jpg', 'projects/mosfilm/004.jpg',
+      'projects/mosfilm/005.jpg', 'projects/mosfilm/006.jpg', 'projects/mosfilm/007.jpg', 'projects/mosfilm/009.jpg',
+      'projects/mosfilm/010.jpg', 'projects/mosfilm/011.jpg', 'projects/mosfilm/012.jpg', 'projects/mosfilm/013.jpg',
+      'projects/mosfilm/014.jpg', 'projects/mosfilm/015.jpg', 'projects/mosfilm/016.jpg', 'projects/mosfilm/017.jpg',
+      'projects/mosfilm/018.jpg', 'projects/mosfilm/019.jpg', 'projects/mosfilm/020.jpg', 'projects/mosfilm/021.jpg',
+      'projects/mosfilm/022.jpg', 'projects/mosfilm/023.jpg', 'projects/mosfilm/024.jpg', 'projects/mosfilm/025.jpg',
+      'projects/mosfilm/026.jpg', 'projects/mosfilm/027.jpg', 'projects/mosfilm/028.jpg', 'projects/mosfilm/029.jpg',
+      'projects/mosfilm/030.jpg', 'projects/mosfilm/031.jpg', 'projects/mosfilm/032.jpg', 'projects/mosfilm/033.jpg',
+      'projects/mosfilm/034.jpg', 'projects/mosfilm/035.jpg', 'projects/mosfilm/036.jpg',
+    ],
+    n100: [
+      'projects/n100/1,1.jpg', 'projects/n100/2.jpg', 'projects/n100/3.jpg', 'projects/n100/4.jpg', 'projects/n100/5.jpg',
+      'projects/n100/6.jpg', 'projects/n100/8.jpg', 'projects/n100/9.jpg', 'projects/n100/11.jpg', 'projects/n100/12.jpg',
+      'projects/n100/13.jpg', 'projects/n100/14.jpg', 'projects/n100/15.jpg', 'projects/n100/16.jpg', 'projects/n100/17.jpg',
+      'projects/n100/18.jpg', 'projects/n100/19.jpg', 'projects/n100/20.jpg', 'projects/n100/21.jpg', 'projects/n100/22.jpg',
+      'projects/n100/23.jpg', 'projects/n100/24.jpg', 'projects/n100/25.jpg', 'projects/n100/26.jpg', 'projects/n100/27.jpg',
+    ],
+    mntk: [
+      'projects/Ресторан МНТК им.Федорова/1.jpg', 'projects/Ресторан МНТК им.Федорова/2.jpg',
+      'projects/Ресторан МНТК им.Федорова/3.jpg', 'projects/Ресторан МНТК им.Федорова/4.jpg',
+      'projects/Ресторан МНТК им.Федорова/5.jpg', 'projects/Ресторан МНТК им.Федорова/6.jpg',
+      'projects/Ресторан МНТК им.Федорова/7.jpg', 'projects/Ресторан МНТК им.Федорова/8.jpg',
+      'projects/Ресторан МНТК им.Федорова/9.jpg', 'projects/Ресторан МНТК им.Федорова/10.jpg',
+      'projects/Ресторан МНТК им.Федорова/11.jpg', 'projects/Ресторан МНТК им.Федорова/12.jpg',
+      'projects/Ресторан МНТК им.Федорова/13.jpg', 'projects/Ресторан МНТК им.Федорова/14.jpg',
+    ],
+  }
+
+  function getSpreadSlot(cardIdx) {
+    const rotStep = (Math.PI * 2) / COUNT
+    const finalRot = -rotStep * 9
+    let cIdx = Math.round(((-Math.PI / 2 - finalRot) / (Math.PI * 2)) * COUNT) % COUNT
+    if (cIdx < 0) cIdx += COUNT
+    let slot = cardIdx - cIdx
+    if (slot > COUNT / 2) slot -= COUNT
+    if (slot < -COUNT / 2) slot += COUNT
+    return slot
+  }
 
   let cachedTitleEl = null
   let cachedPhilosophyEl = null
   let cachedSubEl = null
   let cachedBottomEl = null
-  let selectedProjectName = ''
+  let selectedProjectTitle = ''
+  let selectedProjectSubtitle = ''
+  let selectedProjectAlbum = 'level'
 
   let phase9ExitTime = 0
   let lastWheelTime = 0
@@ -64,6 +134,7 @@ export function useCardState() {
   const cascadeAngle = -Math.atan2(900, 1440) * 0.9
   const cascadeDirX = Math.cos(cascadeAngle)
   const cascadeDirY = Math.sin(cascadeAngle)
+  const toPublicUrl = (path) => base + encodeURI(path.replace(/^projects\//, 'projects-optimized/'))
 
   // Real project photos distributed across 24 circle slots
   const projectPhotos = [
@@ -72,23 +143,40 @@ export function useCardState() {
     'projects/afi/3.jpg',   'projects/level/3.jpg',  'projects/mosfilm/003.jpg', 'projects/n100/4.jpg',  'projects/n35/3.jpg',
     'projects/afi/4.jpg',   'projects/level/4.jpg',  'projects/mosfilm/004.jpg', 'projects/n100/5.jpg',  'projects/n35/4.jpg',
     'projects/afi/5.jpg',   'projects/level/5.jpg',  'projects/mosfilm/005.jpg', 'projects/n100/6.jpg',
-  ].map(p => base + p)
-  const thumbnails = Array.from({ length: COUNT }, (_, i) => ({
-    src: projectPhotos[i % projectPhotos.length],
-  }))
+  ].map(toPublicUrl)
+  const thumbnails = Array.from({ length: COUNT }, (_, i) => {
+    const spreadSlot = getSpreadSlot(i)
+    const spreadPhoto = spreadSlot >= 0 && spreadSlot <= TOTAL_CARDS
+      ? spreadProjectPhotos[spreadSlot]
+      : null
+    return {
+      src: spreadPhoto ? toPublicUrl(spreadPhoto) : projectPhotos[i % projectPhotos.length],
+    }
+  })
 
-  // Phase 9 cascade: one hero photo per project + extras
-  const p9Photos = [
-    'projects/afi/1.jpg',   'projects/afi/2.jpg',   'projects/afi/3.jpg',   'projects/afi/4.jpg',
-    'projects/level/1.jpg', 'projects/level/2.jpg',  'projects/level/3.jpg', 'projects/level/4.jpg',
-    'projects/mosfilm/001.jpg', 'projects/mosfilm/002.jpg', 'projects/mosfilm/003.jpg', 'projects/mosfilm/004.jpg',
-    'projects/n100/2.jpg',  'projects/n100/3.jpg',  'projects/n100/4.jpg',  'projects/n100/5.jpg',
-    'projects/n35/1.jpg',   'projects/n35/2.jpg',   'projects/n35/3.jpg',   'projects/n35/4.jpg',
-    'projects/afi/5.jpg',
-  ].map(p => base + p)
   const p9Thumbnails = Array.from({ length: P9_COUNT }, (_, i) => ({
-    src: p9Photos[i % p9Photos.length],
+    src: '',
   }))
+  let p9LightboxPhotos = []
+
+  function getAlbumPhotos(albumKey) {
+    return projectAlbums[albumKey] || projectAlbums.level
+  }
+
+  function setCascadeAlbum(albumKey) {
+    selectedProjectAlbum = projectAlbums[albumKey] ? albumKey : 'level'
+    const albumPhotos = getAlbumPhotos(selectedProjectAlbum).map(toPublicUrl)
+    for (let i = 0; i < P9_COUNT; i++) {
+      p9Thumbnails[i].src = albumPhotos[i % albumPhotos.length]
+    }
+    p9LightboxPhotos = p9Thumbnails.map(({ src }) => ({ src }))
+  }
+
+  function getP9LightboxPhotos() {
+    return p9LightboxPhotos.map(({ src }) => ({ src }))
+  }
+
+  setCascadeAlbum(selectedProjectAlbum)
 
   function setProgress(p) {
     // In phase 9 (cascade), ignore scroll progress entirely — cascade is the final stage.
@@ -100,20 +188,20 @@ export function useCardState() {
     currentProgress = p
   }
 
-  function onThumbClick() {
+  function onThumbClick(clickedIdx = -1) {
     if (currentProgress >= 0.96 && !phase9) {
       // Capture the project name that was hovered when the user clicked
-      if (p8HoveredIdx >= 0) {
-        const rotStep = (Math.PI * 2) / COUNT
-        const finalRot = -rotStep * 9
-        let cIdx = Math.round(((-Math.PI / 2 - finalRot) / (Math.PI * 2)) * COUNT) % COUNT
-        if (cIdx < 0) cIdx += COUNT
-        let slot = p8HoveredIdx - cIdx
-        if (slot > COUNT / 2) slot -= COUNT
-        if (slot < -COUNT / 2) slot += COUNT
-        selectedProjectName = t(projectNameKeys[slot]) || ''
+      const selectedIdx = p8HoveredIdx >= 0 ? p8HoveredIdx : clickedIdx
+      if (selectedIdx >= 0) {
+        const slot = getSpreadSlot(selectedIdx)
+        const label = projectLabelKeys[slot]
+        selectedProjectTitle = label ? t(label.title) : ''
+        selectedProjectSubtitle = label ? t(label.subtitle) : ''
+        setCascadeAlbum(label?.album)
       } else {
-        selectedProjectName = ''
+        selectedProjectTitle = ''
+        selectedProjectSubtitle = ''
+        setCascadeAlbum('level')
       }
       phase9 = true
       dragOffsetX = 0
@@ -244,6 +332,7 @@ export function useCardState() {
         hoverSpin[i] = 0; hoverLift[i] = 0
         p8Hover[i] = 0; p8Dim[i] = 0
         els[i].style.opacity = '0'
+        els[i].style.pointerEvents = 'none'
         continue
       }
 
@@ -289,6 +378,8 @@ export function useCardState() {
       const ds = c.s / 3
       els[i].style.transform = `translate3d(${c.x}px, ${c.y + p8Hover[i] * -40}px, ${c.z + hz}px) perspective(1500px) rotateX(${c.rx}deg) rotateY(${c.ry}deg) rotateZ(${c.r}deg) rotateY(${hoverSpin[i]}deg) scale(${ds}) scaleX(${c.wx})`
       els[i].style.opacity = String(finalO)
+      const interactivePhase = !phase9 && (currentProgress <= 0.55 || currentProgress >= 0.96)
+      els[i].style.pointerEvents = interactivePhase && t.o > 0.3 ? 'auto' : 'none'
     }
 
     // ── WebGL glass cards ──
@@ -421,18 +512,16 @@ export function useCardState() {
         cachedSubEl = bottomEl.querySelector('.bottom-sub')
       }
 
+      const hoveredSlot = p8HoveredIdx >= 0 ? getSpreadSlot(p8HoveredIdx) : -1
+      const hoveredProjectLabel = hoveredSlot >= 0 ? projectLabelKeys[hoveredSlot] : null
+      const hoveredProjectTitle = hoveredProjectLabel ? t(hoveredProjectLabel.title) : ''
+      const hoveredProjectSubtitle = hoveredProjectLabel ? t(hoveredProjectLabel.subtitle) : ''
+
       if (cachedTitleEl) {
-        if (phase9 && selectedProjectName) {
-          cachedTitleEl.textContent = selectedProjectName
+        if (phase9 && selectedProjectTitle) {
+          cachedTitleEl.textContent = selectedProjectTitle
         } else if (p8HoveredIdx >= 0) {
-          const rotStep = (Math.PI * 2) / COUNT
-          const finalRot = -rotStep * 9
-          let cIdx = Math.round(((-Math.PI / 2 - finalRot) / (Math.PI * 2)) * COUNT) % COUNT
-          if (cIdx < 0) cIdx += COUNT
-          let slot = p8HoveredIdx - cIdx
-          if (slot > COUNT / 2) slot -= COUNT
-          if (slot < -COUNT / 2) slot += COUNT
-          cachedTitleEl.textContent = t(projectNameKeys[slot]) || t('bottom.recent')
+          cachedTitleEl.textContent = hoveredProjectTitle || t('bottom.recent')
         } else {
           cachedTitleEl.textContent = t('bottom.recent')
         }
@@ -442,6 +531,17 @@ export function useCardState() {
         cachedPhilosophyEl.style.opacity = '0'
       }
       if (cachedSubEl) {
+        let isProjectSubtitle = false
+        if (phase9 && selectedProjectSubtitle) {
+          cachedSubEl.textContent = selectedProjectSubtitle
+          isProjectSubtitle = true
+        } else if (p8HoveredIdx >= 0) {
+          cachedSubEl.textContent = hoveredProjectSubtitle || t('bottom.choose')
+          isProjectSubtitle = Boolean(hoveredProjectSubtitle)
+        } else {
+          cachedSubEl.textContent = t('bottom.choose')
+        }
+        cachedSubEl.classList.toggle('bottom-sub--project', isProjectSubtitle)
         cachedSubEl.style.opacity = '1'
       }
     }
@@ -516,5 +616,5 @@ export function useCardState() {
     pendingSnap = true
   }
 
-  return { cur, thumbnails, p9Thumbnails, setProgress, onThumbClick, scrollCascade, tick, startDrag, moveDrag, endDrag, isInPhase9, forceExitPhase9, shouldBlockScroll, recordWheel, getProgress, snap }
+  return { cur, thumbnails, p9Thumbnails, getP9LightboxPhotos, setProgress, onThumbClick, scrollCascade, tick, startDrag, moveDrag, endDrag, isInPhase9, forceExitPhase9, shouldBlockScroll, recordWheel, getProgress, snap }
 }

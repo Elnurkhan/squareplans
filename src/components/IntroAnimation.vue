@@ -7,7 +7,7 @@
           :key="i"
           class="thumb"
           ref="thumbEls"
-          @click="handleThumbClick"
+          @click="handleThumbClick(i)"
         >
           <img :src="thumb.src" alt="" />
           <div class="thumb-highlight" />
@@ -64,9 +64,10 @@
     @click.stop="handleCascadeBack"
     aria-label="Вернуться к проектам"
   >
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <svg class="cascade-back-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <polyline points="15,5 8,12 15,19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
+    Обратно к проектам
   </button>
 </template>
 
@@ -129,9 +130,7 @@ const lightboxStartIdx = ref(0)
 const cascadeBackVisible = ref(false)
 let p9ImagesLoaded = false
 
-const p9LightboxPhotos = cards.p9Thumbnails.map(t => ({
-  src: t.src.replace('/800/1120', '/1600/2240'),
-}))
+const p9LightboxPhotos = ref(cards.getP9LightboxPhotos())
 const SPREAD_JUMP_PROGRESS = 0.98
 const SPREAD_JUMP_DESKTOP_DURATION = 2.2
 const SPREAD_JUMP_MOBILE_DURATION = 3.2
@@ -219,11 +218,23 @@ function snapSpreadJumpToEnd() {
   cancelSpreadJump()
 }
 
-function handleThumbClick() {
+function syncP9Images() {
+  p9LightboxPhotos.value = cards.getP9LightboxPhotos()
+  const els = p9ThumbEls.value
+  for (let i = 0; i < p9Thumbnails.length && i < els.length; i++) {
+    const img = els[i].querySelector('img')
+    if (img) img.src = p9Thumbnails[i].src
+  }
+  p9ImagesLoaded = true
+}
+
+function handleThumbClick(i) {
   if (dragPreventsClick) {
     dragPreventsClick = false
     return
   }
+
+  if (!introComplete.value) return
   if (spreadJumping) {
     snapSpreadJumpToEnd()
     return
@@ -235,10 +246,9 @@ function handleThumbClick() {
     return
   }
 
-  if (!introComplete.value) return
-
-  cards.onThumbClick()
+  cards.onThumbClick(i)
   if (cards.isInPhase9()) {
+    syncP9Images()
     cascadeBackVisible.value = true
     lenisRef.value?.stop()
   }
@@ -261,7 +271,9 @@ function onTouchStart(e) {
   touchStartY = t.clientY
   touchLocked = null
 
-  cards.startDrag(t.clientX, t.clientY)
+  if (cards.isInPhase9() || cards.getProgress() >= 0.96) {
+    cards.startDrag(t.clientX, t.clientY)
+  }
 }
 
 function onTouchMove(e) {
@@ -301,7 +313,7 @@ function onTouchMove(e) {
   if (spreadScrollLocked && scrollsDown && touchLocked !== 'h') {
     e.preventDefault()
   }
-  if (touchLocked === 'h') {
+  if (touchLocked === 'h' && spreadScrollLocked) {
     e.preventDefault()
     cards.moveDrag(t.clientX, t.clientY)
     dragPreventsClick = true
@@ -389,12 +401,7 @@ function tickFn(time, deltaTime) {
 
   // Preload p9 images when approaching phase 9
   if (!p9ImagesLoaded && cards.getProgress() >= 0.85) {
-    p9ImagesLoaded = true
-    const els = p9ThumbEls.value
-    for (let i = 0; i < p9Thumbnails.length && i < els.length; i++) {
-      const img = els[i].querySelector('img')
-      if (img && !img.src) img.src = p9Thumbnails[i].src
-    }
+    syncP9Images()
   }
 
   if (stickyEl.value) {
@@ -640,6 +647,14 @@ onBeforeUnmount(() => {
   color: rgba(26, 26, 26, 0.35);
 }
 
+.bottom-sub--project {
+  margin-top: -5px;
+  letter-spacing: 0.08em;
+  text-transform: none;
+  font-size: 14px;
+  color: black;
+}
+
 /* ── Responsive ── */
 @media (max-width: 1023px) {
   .thumb {
@@ -670,17 +685,25 @@ onBeforeUnmount(() => {
   top: 1.2rem;
   left: 1.2rem;
   z-index: 220;
-  width: 40px;
-  height: 40px;
   border: none;
   background: none;
   color: #1a1a1a;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 0.45rem;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 300;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   opacity: 0.55;
   transition: opacity 0.2s;
+}
+
+.cascade-back-icon {
+  flex: 0 0 auto;
 }
 
 .cascade-back:hover {
@@ -691,13 +714,7 @@ onBeforeUnmount(() => {
   .cascade-back {
     top: 0.8rem;
     left: 0.8rem;
-    width: 32px;
-    height: 32px;
-  }
-
-  .cascade-back svg {
-    width: 18px;
-    height: 18px;
+    font-size: 0.64rem;
   }
 }
 </style>
