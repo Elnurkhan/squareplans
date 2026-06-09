@@ -27,7 +27,6 @@
       </div>
 
       <div class="intro-center" ref="centerEl">
-        <img class="intro-logo" :src="`${$base}logo.svg`" alt="SQUAREPLANS" />
         <span class="intro-sub">{{ t('intro.scroll') }}</span>
       </div>
 
@@ -115,6 +114,7 @@ const { currentPage, isAnimating, navigate } = usePageNavigation()
 // targets a bit).
 watch(currentPage, (n, prev) => {
   if (n === 1 && prev !== 1) cards.snap()
+  syncCascadeChrome()
 })
 
 const { thumbnails, p9Thumbnails } = cards
@@ -135,9 +135,22 @@ const SPREAD_JUMP_PROGRESS = 0.98
 const SPREAD_JUMP_DESKTOP_DURATION = 2.2
 const SPREAD_JUMP_MOBILE_DURATION = 3.2
 const SPREAD_JUMP_EASE = (t) => t * t * t * (t * (t * 6 - 15) + 10)
+const GO_CIRCLE_EVENT = 'intro:go-circle'
+const CASCADE_STATE_EVENT = 'intro:cascade-state'
+const GO_CIRCLE_DESKTOP_DURATION = 2.6
+const GO_CIRCLE_MOBILE_DURATION = 3.2
 let spreadJumpTween = null
 let spreadJumpReset = null
 let spreadJumping = false
+let circleScrollTween = null
+let circleScrollReset = null
+let circleScrolling = false
+let pendingCircleReset = false
+let cascadeChromeActive = false
+
+watch(isAnimating, (animating) => {
+  if (!animating) resolvePendingCircleReset()
+})
 
 function getSpreadJumpDuration() {
   return window.innerWidth < 1024 ? SPREAD_JUMP_MOBILE_DURATION : SPREAD_JUMP_DESKTOP_DURATION
@@ -203,6 +216,36 @@ function cancelSpreadJump() {
   spreadJumpReset = null
 }
 
+function getCircleScrollDuration() {
+  return window.innerWidth < 1024 ? GO_CIRCLE_MOBILE_DURATION : GO_CIRCLE_DESKTOP_DURATION
+}
+
+function finishCircleScroll() {
+  circleScrolling = false
+  circleScrollTween?.kill()
+  circleScrollTween = null
+  circleScrollReset?.kill()
+  circleScrollReset = null
+  cards.resetToCircle()
+  ScrollTrigger.update()
+}
+
+function cancelCircleScroll() {
+  if (!circleScrolling) return
+  circleScrolling = false
+  circleScrollTween?.kill()
+  circleScrollTween = null
+  circleScrollReset?.kill()
+  circleScrollReset = null
+}
+
+function syncCascadeChrome() {
+  const active = currentPage.value === 1 && cards.isInPhase9()
+  if (active === cascadeChromeActive) return
+  cascadeChromeActive = active
+  window.dispatchEvent(new CustomEvent(CASCADE_STATE_EVENT, { detail: { active } }))
+}
+
 function snapSpreadJumpToEnd() {
   if (!spreadJumping) return
   const y = timeline.getScrollPoint(SPREAD_JUMP_PROGRESS)
@@ -218,12 +261,81 @@ function snapSpreadJumpToEnd() {
   cancelSpreadJump()
 }
 
+function goToCirclePhase() {
+  pendingCircleReset = false
+  cancelSpreadJump()
+  cancelCircleScroll()
+  timeline.finishIntro()
+  ScrollTrigger.refresh()
+
+  const y = timeline.getScrollPoint(0)
+  if (!Number.isFinite(y)) {
+    cards.resetToCircle()
+    return
+  }
+
+  const l = lenisRef.value
+  const duration = getCircleScrollDuration()
+  l?.start()
+  l?.resize()
+
+  if (cards.isInPhase9()) {
+    cards.forceExitPhase9()
+    syncCascadeChrome()
+  }
+
+  cascadeBackVisible.value = false
+  dragPreventsClick = false
+  touchLocked = null
+  circleScrolling = true
+
+  if (l?.scrollTo) {
+    l.scrollTo(y, {
+      duration,
+      easing: SPREAD_JUMP_EASE,
+      force: true,
+      lock: true,
+      onComplete: finishCircleScroll,
+    })
+    circleScrollReset = gsap.delayedCall(duration + 0.25, finishCircleScroll)
+    return
+  }
+
+  const scrollState = { y: window.scrollY }
+  circleScrollTween = gsap.to(scrollState, {
+    y,
+    duration,
+    ease: 'sine.inOut',
+    onUpdate: () => {
+      window.scrollTo(0, scrollState.y)
+      ScrollTrigger.update()
+    },
+    onComplete: finishCircleScroll,
+  })
+}
+
+function requestCirclePhase() {
+  pendingCircleReset = true
+  resolvePendingCircleReset()
+}
+
+function resolvePendingCircleReset() {
+  if (!pendingCircleReset || isAnimating.value) return
+  if (currentPage.value !== 1) {
+    navigate(1)
+    return
+  }
+  goToCirclePhase()
+}
+
 function syncP9Images() {
   p9LightboxPhotos.value = cards.getP9LightboxPhotos()
   const els = p9ThumbEls.value
   for (let i = 0; i < p9Thumbnails.length && i < els.length; i++) {
     const img = els[i].querySelector('img')
-    if (img) img.src = p9Thumbnails[i].src
+    if (!img) continue
+    if (p9Thumbnails[i].src) img.src = p9Thumbnails[i].src
+    else img.removeAttribute('src')
   }
   p9ImagesLoaded = true
 }
@@ -250,6 +362,7 @@ function handleThumbClick(i) {
   if (cards.isInPhase9()) {
     syncP9Images()
     cascadeBackVisible.value = true
+    syncCascadeChrome()
     lenisRef.value?.stop()
   }
 }
@@ -351,6 +464,7 @@ function exitPhase9WithLenis() {
   const l = lenisRef.value
   if (l) l.start()
   cascadeBackVisible.value = false
+  syncCascadeChrome()
 }
 
 function handleCascadeBack() {
@@ -407,6 +521,7 @@ function tickFn(time, deltaTime) {
   if (stickyEl.value) {
     stickyEl.value.style.transform = ''
   }
+  syncCascadeChrome()
 }
 
 onMounted(() => {
@@ -442,6 +557,7 @@ onMounted(() => {
   window.addEventListener('touchmove', onTouchMove, { passive: false, capture: true })
   window.addEventListener('touchend', onTouchEnd, { passive: true, capture: true })
   window.addEventListener('wheel', onWheel, { passive: false, capture: true })
+  window.addEventListener(GO_CIRCLE_EVENT, requestCirclePhase)
 })
 
 onBeforeUnmount(() => {
@@ -449,10 +565,16 @@ onBeforeUnmount(() => {
   window.removeEventListener('touchmove', onTouchMove, { capture: true })
   window.removeEventListener('touchend', onTouchEnd, { capture: true })
   window.removeEventListener('wheel', onWheel, { capture: true })
+  window.removeEventListener(GO_CIRCLE_EVENT, requestCirclePhase)
+  if (cascadeChromeActive) {
+    cascadeChromeActive = false
+    window.dispatchEvent(new CustomEvent(CASCADE_STATE_EVENT, { detail: { active: false } }))
+  }
   timeline.destroy()
   gsap.ticker.remove(tickFn)
   mouseTracking.stop()
   cancelSpreadJump()
+  cancelCircleScroll()
   glCardLayer.destroy()
 })
 </script>

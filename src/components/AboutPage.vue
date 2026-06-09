@@ -1,18 +1,11 @@
 <template>
   <section class="page-overlay page-about" :class="{ 'is-active': isActive }" ref="rootEl" data-lenis-prevent>
     <div class="about-scroll">
-      <header class="badge badge-desktop reveal" style="--i: 0">
-        <span class="badge-mark" aria-hidden="true">◆</span>
-        <span class="badge-text">
-          Выпускник Московского архитектурного<br>института с&nbsp;отличием
-        </span>
-      </header>
-
       <div class="about-grid">
         <figure class="photo-col reveal" style="--i: 1">
           <img
             class="founder-photo"
-            :src="`${$base}about/Rectangle%2090.png`"
+            :src="`${$base}about/Rectangle%2090.JPG`"
             alt="Илья — архитектор-дизайнер и&nbsp;основатель студии SquarePlans"
             loading="lazy"
           />
@@ -32,13 +25,6 @@
             отражает характер и&nbsp;становится естественным продолжением
             вашей повседневности.
           </p>
-
-          <header class="badge badge-mobile" style="--i: 0">
-            <span class="badge-mark" aria-hidden="true">◆</span>
-            <span class="badge-text">
-              Выпускник Московского архитектурного<br>института с&nbsp;отличием
-            </span>
-          </header>
 
           <h2 class="quote reveal" style="--i: 4">
             Каждый проект нашей студии&nbsp;— это&nbsp;не&nbsp;шаблонное
@@ -117,31 +103,6 @@ onBeforeUnmount(() => registerPage(2, null))
   display: grid;
   grid-template-rows: auto 1fr;
   gap: 2.5rem;
-}
-
-/* ── Badge ── */
-.badge-desktop {
-  display: flex;
-  align-items: start;
-  gap: 0.7rem;
-  font-size: 0.78rem;
-  line-height: 1.5;
-  color: rgba(20, 20, 26, 0.95);
-  max-width: 320px;
-  font-weight: 400;
-}
-.badge-mark {
-  color: #14131a;
-  font-size: 0.7rem;
-  flex-shrink: 0;
-}
-.badge-text {
-  flex: 1;
-  font-weight: 200;
-}
-
-.badge-mobile {
-  display: none;
 }
 
 /* ── Two-column hero — fills remaining height (100vh layout) ── */
@@ -291,23 +252,6 @@ onBeforeUnmount(() => registerPage(2, null))
   }
   .page-overlay::-webkit-scrollbar { width: 0; height: 0; }
   .page-overlay { scrollbar-width: none; }
-
-  .badge-desktop {
-    display: none;
-  }
-
-  .badge-mobile {
-    display: flex;
-    align-items: start;
-    gap: 0.7rem;
-    font-size: 0.78rem;
-    line-height: 1.5;
-    color: rgba(20, 20, 26, 0.95);
-    max-width: 320px;
-    font-weight: 400;
-    order: 3;
-    margin-bottom: 20px;
-  }
 
   .about-scroll {
     height: auto;

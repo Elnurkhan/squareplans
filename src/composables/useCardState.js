@@ -58,14 +58,14 @@ export function useCardState() {
       'projects/afi/1.jpg', 'projects/afi/2.jpg', 'projects/afi/3.jpg', 'projects/afi/4.jpg', 'projects/afi/5.jpg',
       'projects/afi/6.jpg', 'projects/afi/7.jpg', 'projects/afi/8.jpg', 'projects/afi/9.jpg', 'projects/afi/10.jpg',
       'projects/afi/11.jpg', 'projects/afi/12.jpg', 'projects/afi/13.jpg', 'projects/afi/14.jpg', 'projects/afi/15.jpg',
-      'projects/afi/16.jpg', 'projects/afi/17.jpg', 'projects/afi/18.jpg', 'projects/afi/19.jpg',
+      'projects/afi/16.jpg', 'projects/afi/17.jpg', 'projects/afi/18.jpg',
     ],
     n35: [
-      'projects/n35/1.jpg', 'projects/n35/2.jpg', 'projects/n35/3.jpg', 'projects/n35/4.jpg', 'projects/n35/5.jpg',
-      'projects/n35/6.jpg', 'projects/n35/7.jpg', 'projects/n35/8.jpg', 'projects/n35/10.jpg', 'projects/n35/11.jpg',
-      'projects/n35/12.jpg', 'projects/n35/13.jpg', 'projects/n35/14.jpg', 'projects/n35/15.jpg', 'projects/n35/16.jpg',
-      'projects/n35/19.jpg', 'projects/n35/20.jpg', 'projects/n35/21.jpg', 'projects/n35/22.jpg', 'projects/n35/23.jpg',
-      'projects/n35/24.jpg', 'projects/n35/25.jpg',
+      'projects/n35/1.jpg', 'projects/n35/2.jpg', 'projects/n35/3.jpg', 'projects/n35/4.jpg', 'projects/n35/19.jpg',
+      'projects/n35/20.jpg', 'projects/n35/21.jpg', 'projects/n35/24.jpg', 'projects/n35/5.jpg', 'projects/n35/6.jpg',
+      'projects/n35/7.jpg', 'projects/n35/22.jpg', 'projects/n35/23.jpg', 'projects/n35/8.jpg', 'projects/n35/15.jpg',
+      'projects/n35/10.jpg', 'projects/n35/11.jpg', 'projects/n35/12.jpg', 'projects/n35/13.jpg', 'projects/n35/14.jpg',
+      'projects/n35/16.jpg', 'projects/n35/25.jpg',
     ],
     mosfilm: [
       'projects/mosfilm/001.jpg', 'projects/mosfilm/002.jpg', 'projects/mosfilm/003.jpg', 'projects/mosfilm/004.jpg',
@@ -158,6 +158,7 @@ export function useCardState() {
     src: '',
   }))
   let p9LightboxPhotos = []
+  let p9ActiveCount = 0
 
   function getAlbumPhotos(albumKey) {
     return projectAlbums[albumKey] || projectAlbums.level
@@ -165,11 +166,14 @@ export function useCardState() {
 
   function setCascadeAlbum(albumKey) {
     selectedProjectAlbum = projectAlbums[albumKey] ? albumKey : 'level'
-    const albumPhotos = getAlbumPhotos(selectedProjectAlbum).map(toPublicUrl)
+    const albumPhotos = [...new Set(getAlbumPhotos(selectedProjectAlbum).map(toPublicUrl))]
+    p9ActiveCount = Math.min(P9_COUNT, albumPhotos.length)
     for (let i = 0; i < P9_COUNT; i++) {
-      p9Thumbnails[i].src = albumPhotos[i % albumPhotos.length]
+      p9Thumbnails[i].src = i < p9ActiveCount ? albumPhotos[i] : ''
     }
-    p9LightboxPhotos = p9Thumbnails.map(({ src }) => ({ src }))
+    p9LightboxPhotos = p9Thumbnails
+      .slice(0, p9ActiveCount)
+      .map(({ src }) => ({ src }))
   }
 
   function getP9LightboxPhotos() {
@@ -249,8 +253,10 @@ export function useCardState() {
         // Single scalar along cascade diagonal
         const refW = 1440, refH = 900
         const refDiag = Math.sqrt(refW * refW + refH * refH)
-        const desiredStep = (refDiag - 400) / (P9_COUNT - 1) * 0.9
-        const totalLen = (P9_COUNT - 1) * desiredStep
+        const spacingSlots = Math.max(1, P9_COUNT - 1)
+        const visibleSlots = Math.max(0, p9ActiveCount - 1)
+        const desiredStep = (refDiag - 400) / spacingSlots * 0.9
+        const totalLen = visibleSlots * desiredStep
         const maxDiag = Math.max(0, totalLen / 2 - Math.min(vw, vh) * 0.3)
         // Rubber-band diagonal
         if (!isDragging) {
@@ -291,7 +297,7 @@ export function useCardState() {
 
     const result = computeTargets(currentProgress, {
       vh, vw, tgt, tgtText, tgtArc, tgtBottom, cur, els, mouse,
-      smoothMouse, p9Tgt, phase9, phase9Progress, dragOffsetX, dragDiag, cascadeDirX, cascadeDirY,
+      smoothMouse, p9Tgt, phase9, phase9Progress, p9ActiveCount, dragOffsetX, dragDiag, cascadeDirX, cascadeDirY,
     })
     p8HoveredIdx = result.p8HoveredIdx
 
@@ -425,7 +431,7 @@ export function useCardState() {
     if (phase9 && phase9Progress > 0.5) {
       let bestIdx = -1
       let bestDist = Infinity
-      for (let i = 0; i < P9_COUNT && i < p9ThumbEls.length; i++) {
+      for (let i = 0; i < p9ActiveCount && i < p9ThumbEls.length; i++) {
         const dx = p9Cur[i].x - mx
         const dy = p9Cur[i].y - my
         const d = dx * dx + dy * dy
@@ -465,7 +471,7 @@ export function useCardState() {
       p9ThumbEls[i].style.transform = `translate3d(${c.x}px, ${c.y}px, ${c.z}px) rotateX(${c.rx}deg) rotateY(${c.ry}deg) rotateZ(${c.r}deg) translateX(${hx}px) scale(${c.s / 3})`
       const p9o = Math.max(0, c.o)
       p9ThumbEls[i].style.opacity = String(p9o)
-      p9ThumbEls[i].style.zIndex = String(P9_COUNT - i)
+      p9ThumbEls[i].style.zIndex = String(p9ActiveCount - i)
       p9ThumbEls[i].style.pointerEvents = p9o > 0.3 ? 'auto' : 'none'
     }
     } // end p9 block
@@ -608,6 +614,26 @@ export function useCardState() {
     currentProgress = 1
   }
 
+  function resetToCircle() {
+    phase9 = false
+    phase9Progress = 0
+    phase9ExitTime = 0
+    lastWheelTime = 0
+    currentProgress = 0
+    p8HoveredIdx = -1
+    dragOffsetX = 0
+    dragDiag = 0
+    dragMomentumX = 0
+    dragMomentumDiag = 0
+    isDragging = false
+    pendingSnap = true
+    for (let i = 0; i < P9_COUNT; i++) {
+      p9Cur[i].o = 0
+      p9Tgt[i].o = 0
+      p9Hover[i] = 0
+    }
+  }
+
   function getProgress() {
     return currentProgress
   }
@@ -616,5 +642,5 @@ export function useCardState() {
     pendingSnap = true
   }
 
-  return { cur, thumbnails, p9Thumbnails, getP9LightboxPhotos, setProgress, onThumbClick, scrollCascade, tick, startDrag, moveDrag, endDrag, isInPhase9, forceExitPhase9, shouldBlockScroll, recordWheel, getProgress, snap }
+  return { cur, thumbnails, p9Thumbnails, getP9LightboxPhotos, setProgress, onThumbClick, scrollCascade, tick, startDrag, moveDrag, endDrag, isInPhase9, forceExitPhase9, resetToCircle, shouldBlockScroll, recordWheel, getProgress, snap }
 }
