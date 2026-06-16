@@ -7,7 +7,7 @@ export const CIRCLE_R = 320
 export const EASE = typeof window !== 'undefined' && window.innerWidth < 1024 ? 0.18 : 0.1
 export const MOUSE_EASE = 0.15
 export const HOVER_EASE = 0.12
-export const TOTAL_CARDS = 5
+export const TOTAL_CARDS = 6
 
 export function isCompactLandscape(vw, vh) {
   const w = vw || window.innerWidth

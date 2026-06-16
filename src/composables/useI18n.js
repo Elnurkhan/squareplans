@@ -41,6 +41,7 @@ const translations = {
   'project.n100': { Ru: 'Настоящее 100 кв.м', En: 'Nastoyashee 100 sqm' },
   'project.n35': { Ru: 'Настоящее 35 кв.м', En: 'Nastoyashee 35 sqm' },
   'project.mntk': { Ru: 'МНТК', En: 'MNTK' },
+  'project.sanremo': { Ru: 'Италия. Сан-Ремо', En: 'Italy. Sanremo' },
   'project.afi.title': { Ru: 'AFI Park', En: 'AFI Park' },
   'project.afi.subtitle': { Ru: 'Москва, 135 кв.м', En: 'Moscow 135 sqm' },
   'project.level.title': { Ru: 'Level', En: 'Level Moscow' },
@@ -53,6 +54,8 @@ const translations = {
   'project.n35.subtitle': { Ru: 'Москва, 35 кв.м', En: 'Moscow, 35 sqm' },
   'project.mntk.title': { Ru: 'МНТК', En: 'MNTK' },
   'project.mntk.subtitle': { Ru: 'Москва, 212 кв.м', En: 'Moscow, 212 sqm' },
+  'project.sanremo.title': { Ru: 'Италия. Сан-Ремо', En: 'Italy. Sanremo' },
+  'project.sanremo.subtitle': { Ru: 'Сан-Ремо, Италия', En: 'Sanremo, Italy' },
 
   // ProjectPage
   'pp.projects': { Ru: 'Проекты', En: 'Projects' },

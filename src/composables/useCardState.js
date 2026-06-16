@@ -37,6 +37,7 @@ export function useCardState() {
     { title: 'project.mosfilm.title', subtitle: 'project.mosfilm.subtitle', album: 'mosfilm' },
     { title: 'project.n100.title', subtitle: 'project.n100.subtitle', album: 'n100' },
     { title: 'project.mntk.title', subtitle: 'project.mntk.subtitle', album: 'mntk' },
+    { title: 'project.sanremo.title', subtitle: 'project.sanremo.subtitle', album: 'sanremo' },
   ]
 
   const spreadProjectPhotos = [
@@ -46,6 +47,7 @@ export function useCardState() {
     'projects/mosfilm/010.jpg',
     'projects/n100/5.jpg',
     'projects/Ресторан МНТК им.Федорова/2.jpg',
+    'projects/Италия. Сан-Ремо/1.jpg',
   ]
 
   const projectAlbums = {
@@ -93,6 +95,26 @@ export function useCardState() {
       'projects/Ресторан МНТК им.Федорова/9.jpg', 'projects/Ресторан МНТК им.Федорова/10.jpg',
       'projects/Ресторан МНТК им.Федорова/11.jpg', 'projects/Ресторан МНТК им.Федорова/12.jpg',
       'projects/Ресторан МНТК им.Федорова/13.jpg', 'projects/Ресторан МНТК им.Федорова/14.jpg',
+    ],
+    sanremo: [
+      'projects/Италия. Сан-Ремо/1.jpg', 'projects/Италия. Сан-Ремо/2.jpg',
+      'projects/Италия. Сан-Ремо/3.jpg', 'projects/Италия. Сан-Ремо/4.jpg',
+      'projects/Италия. Сан-Ремо/5.jpg', 'projects/Италия. Сан-Ремо/6.jpg',
+      'projects/Италия. Сан-Ремо/7.jpg', 'projects/Италия. Сан-Ремо/8.jpg',
+      'projects/Италия. Сан-Ремо/9.jpg', 'projects/Италия. Сан-Ремо/10.jpg',
+      'projects/Италия. Сан-Ремо/11.jpg', 'projects/Италия. Сан-Ремо/12.jpg',
+      'projects/Италия. Сан-Ремо/13.jpg', 'projects/Италия. Сан-Ремо/14.jpg',
+      'projects/Италия. Сан-Ремо/15.jpg', 'projects/Италия. Сан-Ремо/16.jpg',
+      'projects/Италия. Сан-Ремо/17.jpg', 'projects/Италия. Сан-Ремо/18.jpg',
+      'projects/Италия. Сан-Ремо/19.jpg', 'projects/Италия. Сан-Ремо/20.jpg',
+      'projects/Италия. Сан-Ремо/21.jpg', 'projects/Италия. Сан-Ремо/22.jpg',
+      'projects/Италия. Сан-Ремо/23.jpg', 'projects/Италия. Сан-Ремо/24.jpg',
+      'projects/Италия. Сан-Ремо/25.jpg', 'projects/Италия. Сан-Ремо/26.jpg',
+      'projects/Италия. Сан-Ремо/27.jpg', 'projects/Италия. Сан-Ремо/28.jpg',
+      'projects/Италия. Сан-Ремо/29.jpg', 'projects/Италия. Сан-Ремо/30.jpg',
+      'projects/Италия. Сан-Ремо/31.jpg', 'projects/Италия. Сан-Ремо/32.jpg',
+      'projects/Италия. Сан-Ремо/33.jpg', 'projects/Италия. Сан-Ремо/34.jpg',
+      'projects/Италия. Сан-Ремо/35.jpg',
     ],
   }
 

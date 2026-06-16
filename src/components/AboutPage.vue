@@ -355,11 +355,12 @@ onBeforeUnmount(() => registerPage(2, null))
   }
 
   .founder-photo {
-    width: min(68vw, 420px);
+    width: min(72vh, 420px);
     max-width: 100%;
-    height: min(46vh, 260px);
-    aspect-ratio: 16 / 10;
+    height: min(46vh, 240px);
+    aspect-ratio: 3 / 2;
     object-fit: cover;
+    object-position: center 24%;
     margin: 0 auto 24px;
   }
 
