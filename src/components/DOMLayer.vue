@@ -13,6 +13,7 @@
 
 .dom-layer .section {
   height: 100vh;
+  height: 100dvh;
   pointer-events: auto;
   contain: layout style paint;
 }

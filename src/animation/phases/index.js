@@ -1,4 +1,4 @@
-import { COUNT, P9_COUNT, getCircleR } from '../constants'
+import { COUNT, P9_COUNT, getCircleR, isCompactLandscape } from '../constants'
 import * as circlePhase from './circlePhase'
 import * as arcSpreadPhase from './arcSpreadPhase'
 import * as zoomPhase from './zoomPhase'
@@ -10,6 +10,7 @@ export function computeTargets(progress, ctx) {
   const { vh, vw, tgtBottom, tgtArc } = ctx
 
   const isMobile = vw < 1024
+  const compactLandscape = isCompactLandscape(vw, vh)
   const circleR = getCircleR(vw, vh)
   const radiusEnd = isMobile ? Math.max(circleR * 1.5, vh * 0.6) : vw * 0.48
   const rotationStep = (Math.PI * 2) / COUNT
@@ -38,9 +39,10 @@ export function computeTargets(progress, ctx) {
   const centerAngle = (centerIdx / COUNT) * Math.PI * 2 + finalRotOffset
   const arcCY = radiusEnd
   const arcRadius = radiusEnd
-  const arcScale = isMobile ? 2.2 : 3
+  const arcScale = compactLandscape ? 1.55 : isMobile ? 2.2 : 3
+  const stackScale = compactLandscape ? 2 : 2.6
 
-  Object.assign(phaseCtx, { centerIdx, halfCount, angularStep, centerAngle, arcCY, arcRadius, arcScale })
+  Object.assign(phaseCtx, { centerIdx, halfCount, angularStep, centerAngle, arcCY, arcRadius, arcScale, stackScale })
 
   // ── Arc spread (0.55–0.75) ──
   if (progress <= 0.75) {

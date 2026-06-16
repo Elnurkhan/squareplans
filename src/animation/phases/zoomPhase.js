@@ -1,7 +1,7 @@
 import { COUNT, lerp } from '../constants'
 
 export function compute(ctx) {
-  const { progress, tgt, tgtText, arcCY, arcRadius, arcScale, centerIdx, halfCount, angularStep, centerAngle } = ctx
+  const { progress, tgt, tgtText, arcCY, arcRadius, arcScale, stackScale, centerIdx, halfCount, angularStep, centerAngle } = ctx
 
   const zoomProgress = (progress - 0.75) / 0.05
   const startX = Math.cos(centerAngle) * arcRadius
@@ -24,7 +24,7 @@ export function compute(ctx) {
       tgt[i].x = lerp(startX, 0, zoomProgress)
       tgt[i].y = lerp(startY, 0, zoomProgress)
       tgt[i].r = lerp(startR, 0, zoomProgress)
-      tgt[i].s = lerp(arcScale, 2.6, zoomProgress)
+      tgt[i].s = lerp(arcScale, stackScale ?? 2.6, zoomProgress)
       tgt[i].o = 1
     }
     tgt[i].z = 0

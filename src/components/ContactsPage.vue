@@ -200,15 +200,15 @@ onBeforeUnmount(() => registerPage(3, null))
 }
 
 /* ── Responsive ── */
-@media (max-width: 640px) {
+@media (max-width: 640px), (max-width: 1023px) and (max-height: 520px) and (orientation: landscape) {
   .page-overlay {
     padding: 5rem 1.5rem 2rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
   }
   .contacts-stack {
     gap: 1.4rem;
-  }
-  .brand-title {
-    font-size: clamp(2rem, 9vw, 2.8rem);
   }
   .hero-row {
     gap: 1rem;
@@ -228,6 +228,46 @@ onBeforeUnmount(() => registerPage(3, null))
   }
   .socials {
     gap: 1.1rem;
+  }
+}
+
+@media (max-width: 1023px) and (max-height: 520px) and (orientation: landscape) {
+  .page-overlay {
+    align-items: flex-start;
+    padding: 3.4rem 1.25rem 1rem;
+  }
+
+  .contacts-stack {
+    gap: 0.7rem;
+    max-width: 520px;
+  }
+
+  .eyebrow {
+    margin-bottom: 0;
+  }
+
+  .brand-title img {
+    width: 120px;
+  }
+
+  .hero-row {
+    column-gap: 1rem;
+    row-gap: 14px;
+    margin-top: 0.5rem;
+  }
+
+  .half-photo {
+    width: 52px;
+    height: 108px;
+  }
+
+  .contacts-list {
+    gap: 0.85rem;
+    margin-bottom: 0;
+  }
+
+  .contacts-list dd {
+    font-size: 0.82rem;
   }
 }
 </style>

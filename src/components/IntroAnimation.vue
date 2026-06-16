@@ -583,12 +583,14 @@ onBeforeUnmount(() => {
 .intro {
   position: relative;
   height: 100vh;
+  height: 100dvh;
   z-index: 50;
   background: #fafafa;
 }
 
 .intro-sticky {
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
@@ -788,7 +790,7 @@ onBeforeUnmount(() => {
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 640px), (max-width: 1023px) and (max-height: 520px) and (orientation: landscape) {
   .intro-brand {
     font-size: 0.7rem;
   }
@@ -799,6 +801,40 @@ onBeforeUnmount(() => {
     margin-left: -48px;
     margin-top: -69px;
     border-radius: 12px;
+  }
+}
+
+@media (max-width: 1023px) and (max-height: 520px) and (orientation: landscape) {
+  .thumb {
+    width: 78px;
+    height: 112px;
+    margin-left: -39px;
+    margin-top: -56px;
+    border-radius: 10px;
+  }
+
+  .intro-bottom {
+    bottom: 1rem;
+  }
+
+  .intro-arc-text {
+    bottom: 7%;
+  }
+
+  .intro-arc-text p {
+    font-size: 0.58rem;
+    line-height: 1.55;
+    max-width: 420px;
+  }
+
+  .intro-sub,
+  .bottom-sub {
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+  }
+
+  .bottom-title {
+    font-size: 0.78rem;
   }
 }
 
@@ -834,9 +870,15 @@ onBeforeUnmount(() => {
 
 @media (max-width: 1023px) {
   .cascade-back {
-    top: 0.8rem;
-    left: 0.8rem;
+    top: 4.4rem;
+    left: 1rem;
     font-size: 0.64rem;
+  }
+}
+
+@media (max-width: 1023px) and (max-height: 520px) and (orientation: landscape) {
+  .cascade-back {
+    top: 3rem;
   }
 }
 </style>

@@ -113,6 +113,7 @@ body {
   right: 0;
   width: 2px;
   height: 100vh;
+  height: 100dvh;
   background: #1a1a1a;
   transform-origin: top center;
   transform: scaleY(0);

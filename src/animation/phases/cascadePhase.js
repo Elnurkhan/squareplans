@@ -1,4 +1,4 @@
-import { COUNT, P9_COUNT } from '../constants'
+import { COUNT, P9_COUNT, isCompactLandscape, usesSmallMobileCards } from '../constants'
 
 export function getCascadeLayout(vw, vh, visibleCount = P9_COUNT) {
   const isMobile = vw < 1024
@@ -13,8 +13,9 @@ export function getCascadeLayout(vw, vh, visibleCount = P9_COUNT) {
     const refDiag = Math.sqrt(refW * refW + refH * refH)
     desiredStep = (refDiag - pad * 2) / spacingSlots * 0.9
     const desktopScale = Math.min(8, desiredStep / 70 * 1.8)
-    const cssCardW = vw < 640 ? 32 : 40
-    cardScale = desktopScale * (50 / cssCardW) * 1.3
+    const cssCardW = usesSmallMobileCards(vw, vh) ? 32 : 40
+    const compactScale = isCompactLandscape(vw, vh) ? 0.9 : 1.3
+    cardScale = desktopScale * (50 / cssCardW) * compactScale
   } else {
     diagAngle = -Math.atan2(vh, vw) * .9
     const screenDiag = Math.sqrt(vw * vw + vh * vh)

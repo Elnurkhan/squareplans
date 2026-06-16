@@ -9,6 +9,17 @@ export const MOUSE_EASE = 0.15
 export const HOVER_EASE = 0.12
 export const TOTAL_CARDS = 5
 
+export function isCompactLandscape(vw, vh) {
+  const w = vw || window.innerWidth
+  const h = vh || window.innerHeight
+  return w < 1024 && h <= 520 && w > h
+}
+
+export function usesSmallMobileCards(vw, vh) {
+  const w = vw || window.innerWidth
+  return w < 640 || isCompactLandscape(w, vh)
+}
+
 export function getCircleR(vw, vh) {
   const h = vh || window.innerHeight
   if (vw < 768) return Math.min(vw * 0.55, h * 0.42, 300)

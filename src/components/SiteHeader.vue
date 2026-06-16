@@ -123,7 +123,7 @@ onBeforeUnmount(() => {
   opacity: 1;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 640px), (max-width: 1023px) and (max-height: 520px) and (orientation: landscape) {
   .site-header {
     padding: 1.4rem 1rem;
   }
@@ -139,6 +139,18 @@ onBeforeUnmount(() => {
   .site-nav a {
     font-size: 0.56rem;
     letter-spacing: 0.12em;
+  }
+}
+
+@media (max-width: 1023px) and (max-height: 520px) and (orientation: landscape) {
+  .site-header {
+    padding: 0.8rem 1rem;
+  }
+  .site-logo-link img {
+    width: 62px;
+  }
+  .site-nav {
+    gap: 0.95rem;
   }
 }
 </style>

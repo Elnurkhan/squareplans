@@ -241,7 +241,7 @@ onBeforeUnmount(() => registerPage(2, null))
 }
 
 /* ── Responsive ── */
-@media (max-width: 640px) {
+@media (max-width: 640px), (max-width: 1023px) and (max-height: 520px) and (orientation: landscape) {
   /* On narrow screens 100vh + two columns can't fit — fall back to a normal
      vertical stack with internal scroll. */
   .page-overlay {
@@ -325,4 +325,46 @@ onBeforeUnmount(() => registerPage(2, null))
   }
 }
 
+@media (max-width: 1023px) and (max-height: 520px) and (orientation: landscape) {
+  .about-scroll {
+    padding: 4rem 16px 2rem;
+  }
+
+  .title {
+    font-size: 24px;
+    margin-bottom: 14px;
+  }
+
+  .lede,
+  .lede-main {
+    margin-bottom: 24px;
+  }
+
+  .lede-main + .quote {
+    margin-top: 20px;
+  }
+
+  .quote {
+    font-size: 1rem;
+    line-height: 1.25;
+  }
+
+  .photo-col {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .founder-photo {
+    width: min(68vw, 420px);
+    max-width: 100%;
+    height: min(46vh, 260px);
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    margin: 0 auto 24px;
+  }
+
+  .stat-num {
+    margin-bottom: 24px;
+  }
+}
 </style>

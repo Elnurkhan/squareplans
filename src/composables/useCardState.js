@@ -1,4 +1,4 @@
-import { COUNT, P9_COUNT, EASE, HOVER_EASE, TOTAL_CARDS } from '@/animation/constants'
+import { COUNT, P9_COUNT, EASE, HOVER_EASE, TOTAL_CARDS, usesSmallMobileCards } from '@/animation/constants'
 import { computeTargets } from '@/animation/phases'
 import { useI18n } from '@/composables/useI18n'
 
@@ -267,18 +267,19 @@ export function useCardState() {
           else if (dragDiag < -maxDiag) dragDiag = -maxDiag + (dragDiag + maxDiag) * 0.35
         }
       } else {
-        // Phase 8: horizontal only — match spreadPhase spacing & scale
+        // Phase 8: horizontal only. Bounds mirror spreadPhase's asymmetric
+        // layout so the first and last visible project cards can both reach
+        // the viewport center on mobile.
         const spacing = 140
-        const cardScale = 5
-        const cardW = (vw < 640 ? 32 : 40) * cardScale
-        const totalWidth = TOTAL_CARDS * spacing + cardW
-        const maxDragX = Math.max(0, totalWidth / 2 - vw * 0.3)
+        const centerCard = Math.floor(TOTAL_CARDS / 2)
+        const maxDragX = centerCard * spacing
+        const minDragX = -(TOTAL_CARDS - centerCard) * spacing
         if (!isDragging) {
           if (dragOffsetX > maxDragX) dragOffsetX += (maxDragX - dragOffsetX) * 0.12
-          else if (dragOffsetX < -maxDragX) dragOffsetX += (-maxDragX - dragOffsetX) * 0.12
+          else if (dragOffsetX < minDragX) dragOffsetX += (minDragX - dragOffsetX) * 0.12
         } else {
           if (dragOffsetX > maxDragX) dragOffsetX = maxDragX + (dragOffsetX - maxDragX) * 0.35
-          else if (dragOffsetX < -maxDragX) dragOffsetX = -maxDragX + (dragOffsetX + maxDragX) * 0.35
+          else if (dragOffsetX < minDragX) dragOffsetX = minDragX + (dragOffsetX - minDragX) * 0.35
         }
       }
     } else {
@@ -391,8 +392,8 @@ export function useCardState() {
     // ── WebGL glass cards ──
     if (glFade > 0.01) {
       glLayer.resize()
-      const cardW = vw < 640 ? 32 : vw < 1024 ? 40 : 50
-      const cardH = vw < 640 ? 46 : vw < 1024 ? 58 : 72
+      const cardW = usesSmallMobileCards(vw, vh) ? 32 : vw < 1024 ? 40 : 50
+      const cardH = usesSmallMobileCards(vw, vh) ? 46 : vw < 1024 ? 58 : 72
       const glCards = []
       for (let i = 0; i < COUNT; i++) {
         if (tgt[i].o < 0.1) continue

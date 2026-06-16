@@ -225,6 +225,7 @@ onBeforeUnmount(() => {
 .lightbox-main {
   max-width: calc(100vw - 140px);
   max-height: calc(100vh - 140px);
+  max-height: calc(100dvh - 140px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -233,6 +234,7 @@ onBeforeUnmount(() => {
 .lightbox-image {
   max-width: 100%;
   max-height: calc(100vh - 140px);
+  max-height: calc(100dvh - 140px);
   object-fit: contain;
   border-radius: 12px;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.1);
@@ -337,10 +339,12 @@ onBeforeUnmount(() => {
   .lightbox-main {
     max-width: calc(100vw - 80px);
     max-height: calc(100vh - 120px);
+    max-height: calc(100dvh - 120px);
   }
 
   .lightbox-image {
     max-height: calc(100vh - 120px);
+    max-height: calc(100dvh - 120px);
     border-radius: 10px;
   }
 
@@ -375,6 +379,26 @@ onBeforeUnmount(() => {
     width: 36px;
     height: 36px;
     border-radius: 3px;
+  }
+}
+
+@media (max-width: 1023px) and (max-height: 520px) and (orientation: landscape) {
+  .lightbox-main {
+    max-width: calc(100vw - 92px);
+    max-height: calc(100dvh - 76px);
+  }
+
+  .lightbox-image {
+    max-height: calc(100dvh - 76px);
+  }
+
+  .lightbox-thumbs {
+    padding: 0.35rem 0.7rem;
+  }
+
+  .lightbox-thumb {
+    width: 30px;
+    height: 30px;
   }
 }
 </style>

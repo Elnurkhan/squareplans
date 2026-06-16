@@ -926,7 +926,7 @@ section.pp-bleed img {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-width: 1023px) and (max-height: 520px) and (orientation: landscape) {
   .pp {
     padding-left: 0;
     padding-right: 0;
@@ -1008,6 +1008,62 @@ section.pp-bleed img {
     font-size: 1.2rem;
     left: 1.2rem;
     bottom: 3rem;
+  }
+}
+
+@media (max-width: 1023px) and (max-height: 520px) and (orientation: landscape) {
+  .pp-projects-overview {
+    padding-top: 3.5rem;
+  }
+
+  .pp-body {
+    padding-bottom: 80px;
+  }
+
+  .pp-po-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .pp-po-title,
+  .pp-po-count {
+    font-size: 2rem;
+  }
+
+  .pp-po-gallery {
+    max-height: 38vh;
+    overflow: hidden;
+  }
+
+  .pp-aesthetics {
+    padding: 3rem 0;
+  }
+
+  .pp-ae-photo {
+    width: min(68vw, 420px);
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .pp-ae-photo img {
+    max-height: 42vh;
+    object-fit: cover;
+  }
+
+  .pp-mission {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+
+  .pp-mission-photo {
+    max-width: 128px;
+  }
+
+  .pp-footer-inner {
+    gap: 1rem;
+  }
+
+  .pp-banner-img img {
+    min-height: 58vh;
   }
 }
 
