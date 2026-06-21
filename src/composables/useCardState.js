@@ -1,5 +1,6 @@
 import { COUNT, P9_COUNT, EASE, HOVER_EASE, TOTAL_CARDS, usesSmallMobileCards } from '@/animation/constants'
 import { computeTargets } from '@/animation/phases'
+import { getCascadeDragBounds } from '@/animation/phases/cascadePhase'
 import { useI18n } from '@/composables/useI18n'
 
 const base = import.meta.env.BASE_URL
@@ -229,11 +230,11 @@ export function useCardState() {
         selectedProjectSubtitle = ''
         setCascadeAlbum('level')
       }
-      phase9 = true
       dragOffsetX = 0
-      dragDiag = 0
+      dragDiag = getCascadeDragBounds(window.innerWidth, window.innerHeight, p9ActiveCount)
       dragMomentumX = 0
       dragMomentumDiag = 0
+      phase9 = true
     }
   }
 
@@ -257,53 +258,53 @@ export function useCardState() {
     const my = mouse.y * vh / 2
     const hoverActive = currentProgress <= 0.15
 
-    // Mobile drag: momentum + bounds (phase 8 & 9)
+    // Drag: phase 8 is mobile-only horizontal; cascade can drag along its
+    // diagonal on every viewport when the album overflows the fixed layout.
     const isMobile = vw < 1024
-    if (isMobile && currentProgress >= 0.96) {
+    if (phase9) {
       if (!isDragging) {
-        if (phase9) {
-          dragDiag += dragMomentumDiag
-          dragMomentumDiag *= 0.95
-          if (Math.abs(dragMomentumDiag) < 0.5) dragMomentumDiag = 0
-        } else {
-          dragOffsetX += dragMomentumX
-          dragMomentumX *= 0.95
-          if (Math.abs(dragMomentumX) < 0.5) dragMomentumX = 0
-        }
+        dragDiag += dragMomentumDiag
+        dragMomentumDiag *= 0.95
+        if (Math.abs(dragMomentumDiag) < 0.5) dragMomentumDiag = 0
       }
-      if (phase9) {
-        // Single scalar along cascade diagonal
-        const refW = 1440, refH = 900
-        const refDiag = Math.sqrt(refW * refW + refH * refH)
-        const spacingSlots = Math.max(1, P9_COUNT - 1)
-        const visibleSlots = Math.max(0, p9ActiveCount - 1)
-        const desiredStep = (refDiag - 400) / spacingSlots * 0.9
-        const totalLen = visibleSlots * desiredStep
-        const maxDiag = Math.max(0, totalLen / 2 - Math.min(vw, vh) * 0.3)
-        // Rubber-band diagonal
-        if (!isDragging) {
-          if (dragDiag > maxDiag) dragDiag += (maxDiag - dragDiag) * 0.12
-          else if (dragDiag < -maxDiag) dragDiag += (-maxDiag - dragDiag) * 0.12
-        } else {
-          if (dragDiag > maxDiag) dragDiag = maxDiag + (dragDiag - maxDiag) * 0.35
-          else if (dragDiag < -maxDiag) dragDiag = -maxDiag + (dragDiag + maxDiag) * 0.35
-        }
+
+      const maxDiag = getCascadeDragBounds(vw, vh, p9ActiveCount)
+      if (!isDragging) {
+        if (dragDiag > maxDiag) dragDiag += (maxDiag - dragDiag) * 0.12
+        else if (dragDiag < -maxDiag) dragDiag += (-maxDiag - dragDiag) * 0.12
       } else {
-        // Phase 8: horizontal only. Bounds mirror spreadPhase's asymmetric
-        // layout so the first and last visible project cards can both reach
-        // the viewport center on mobile.
-        const spacing = 140
-        const centerCard = Math.floor(TOTAL_CARDS / 2)
-        const maxDragX = centerCard * spacing
-        const minDragX = -(TOTAL_CARDS - centerCard) * spacing
-        if (!isDragging) {
-          if (dragOffsetX > maxDragX) dragOffsetX += (maxDragX - dragOffsetX) * 0.12
-          else if (dragOffsetX < minDragX) dragOffsetX += (minDragX - dragOffsetX) * 0.12
-        } else {
-          if (dragOffsetX > maxDragX) dragOffsetX = maxDragX + (dragOffsetX - maxDragX) * 0.35
-          else if (dragOffsetX < minDragX) dragOffsetX = minDragX + (dragOffsetX - minDragX) * 0.35
-        }
+        if (dragDiag > maxDiag) dragDiag = maxDiag + (dragDiag - maxDiag) * 0.35
+        else if (dragDiag < -maxDiag) dragDiag = -maxDiag + (dragDiag + maxDiag) * 0.35
       }
+
+      if (Math.abs(dragOffsetX) > 1) dragOffsetX *= 0.85
+      else dragOffsetX = 0
+      dragMomentumX = 0
+    } else if (isMobile && currentProgress >= 0.96) {
+      if (!isDragging) {
+        dragOffsetX += dragMomentumX
+        dragMomentumX *= 0.95
+        if (Math.abs(dragMomentumX) < 0.5) dragMomentumX = 0
+      }
+
+      // Phase 8: horizontal only. Bounds mirror spreadPhase's asymmetric
+      // layout so the first and last visible project cards can both reach
+      // the viewport center on mobile.
+      const spacing = 140
+      const centerCard = Math.floor(TOTAL_CARDS / 2)
+      const maxDragX = centerCard * spacing
+      const minDragX = -(TOTAL_CARDS - centerCard) * spacing
+      if (!isDragging) {
+        if (dragOffsetX > maxDragX) dragOffsetX += (maxDragX - dragOffsetX) * 0.12
+        else if (dragOffsetX < minDragX) dragOffsetX += (minDragX - dragOffsetX) * 0.12
+      } else {
+        if (dragOffsetX > maxDragX) dragOffsetX = maxDragX + (dragOffsetX - maxDragX) * 0.35
+        else if (dragOffsetX < minDragX) dragOffsetX = minDragX + (dragOffsetX - minDragX) * 0.35
+      }
+
+      if (Math.abs(dragDiag) > 1) dragDiag *= 0.85
+      else dragDiag = 0
+      dragMomentumDiag = 0
     } else {
       if (Math.abs(dragOffsetX) > 1) dragOffsetX *= 0.85
       else dragOffsetX = 0
@@ -607,8 +608,18 @@ export function useCardState() {
 
   function scrollCascade(deltaY) {
     if (!phase9) return
-    // Cascade is the final, static stage. Scrolling does not collapse cards
-    // anymore — only an upward scroll exits phase 9 back to the spread view.
+    const maxDiag = getCascadeDragBounds(window.innerWidth, window.innerHeight, p9ActiveCount)
+    if (maxDiag > 0) {
+      if (deltaY < 0 && dragDiag >= maxDiag - 2) {
+        phase9 = false
+        phase9ExitTime = performance.now()
+        return
+      }
+      dragDiag -= deltaY * 0.65
+      dragMomentumDiag = -deltaY * 0.08
+      return
+    }
+
     if (deltaY < 0) {
       phase9 = false
       phase9ExitTime = performance.now()

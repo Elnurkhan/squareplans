@@ -124,6 +124,9 @@ let touchStartX = 0
 let touchStartY = 0
 let touchLocked = null
 let dragPreventsClick = false
+let mouseDragging = false
+let mouseStartX = 0
+let mouseStartY = 0
 
 const lightboxOpen = ref(false)
 const lightboxStartIdx = ref(0)
@@ -460,6 +463,41 @@ function onTouchEnd(e) {
   touchLocked = null
 }
 
+function onMouseDown(e) {
+  if (currentPage.value !== 1) return
+  if (window.innerWidth < 1024) return
+  if (!cards.isInPhase9()) return
+  if (e.button !== 0) return
+  if (e.target?.closest?.('.cascade-back')) return
+
+  mouseDragging = true
+  mouseStartX = e.clientX
+  mouseStartY = e.clientY
+  cards.startDrag(e.clientX, e.clientY)
+}
+
+function onMouseMove(e) {
+  if (!mouseDragging) return
+
+  const dx = e.clientX - mouseStartX
+  const dy = e.clientY - mouseStartY
+  if (Math.abs(dx) + Math.abs(dy) > 4) dragPreventsClick = true
+  cards.moveDrag(e.clientX, e.clientY)
+  e.preventDefault()
+}
+
+function onMouseUp() {
+  if (!mouseDragging) return
+
+  mouseDragging = false
+  cards.endDrag()
+  if (dragPreventsClick) {
+    window.setTimeout(() => {
+      dragPreventsClick = false
+    }, 0)
+  }
+}
+
 function exitPhase9WithLenis() {
   const l = lenisRef.value
   if (l) l.start()
@@ -556,6 +594,9 @@ onMounted(() => {
   window.addEventListener('touchstart', onTouchStart, { passive: true, capture: true })
   window.addEventListener('touchmove', onTouchMove, { passive: false, capture: true })
   window.addEventListener('touchend', onTouchEnd, { passive: true, capture: true })
+  window.addEventListener('mousedown', onMouseDown, { capture: true })
+  window.addEventListener('mousemove', onMouseMove, { passive: false, capture: true })
+  window.addEventListener('mouseup', onMouseUp, { capture: true })
   window.addEventListener('wheel', onWheel, { passive: false, capture: true })
   window.addEventListener(GO_CIRCLE_EVENT, requestCirclePhase)
 })
@@ -564,6 +605,9 @@ onBeforeUnmount(() => {
   window.removeEventListener('touchstart', onTouchStart, { capture: true })
   window.removeEventListener('touchmove', onTouchMove, { capture: true })
   window.removeEventListener('touchend', onTouchEnd, { capture: true })
+  window.removeEventListener('mousedown', onMouseDown, { capture: true })
+  window.removeEventListener('mousemove', onMouseMove, { capture: true })
+  window.removeEventListener('mouseup', onMouseUp, { capture: true })
   window.removeEventListener('wheel', onWheel, { capture: true })
   window.removeEventListener(GO_CIRCLE_EVENT, requestCirclePhase)
   if (cascadeChromeActive) {
@@ -626,6 +670,8 @@ onBeforeUnmount(() => {
   object-fit: cover;
   border-radius: inherit;
   display: block;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 /* Glass highlight overlay */
@@ -663,7 +709,11 @@ onBeforeUnmount(() => {
 .p9-thumb {
   opacity: 0;
   pointer-events: none;
-  cursor: pointer;
+  cursor: grab;
+}
+
+.p9-thumb:active {
+  cursor: grabbing;
 }
 
 /* ── Center text ── */

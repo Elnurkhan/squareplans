@@ -1,5 +1,5 @@
 export const COUNT = 24
-export const P9_COUNT = 21
+export const P9_COUNT = 35
 export const PHOTO_W = 50
 export const SPACING = 16
 export const STEP = PHOTO_W + SPACING

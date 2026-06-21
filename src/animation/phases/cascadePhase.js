@@ -1,9 +1,11 @@
 import { COUNT, P9_COUNT, isCompactLandscape, usesSmallMobileCards } from '../constants'
 
-export function getCascadeLayout(vw, vh, visibleCount = P9_COUNT) {
+const CASCADE_REFERENCE_COUNT = 21
+
+export function getCascadeLayout(vw, vh) {
   const isMobile = vw < 1024
   const pad = 200
-  const spacingSlots = Math.max(1, P9_COUNT - 1)
+  const spacingSlots = Math.max(1, CASCADE_REFERENCE_COUNT - 1)
 
   let diagAngle, desiredStep, cardScale
 
@@ -25,6 +27,19 @@ export function getCascadeLayout(vw, vh, visibleCount = P9_COUNT) {
   }
 
   return { diagAngle, desiredStep, cardScale }
+}
+
+export function getCascadeDragBounds(vw, vh, visibleCount = P9_COUNT) {
+  const { desiredStep } = getCascadeLayout(vw, vh)
+  const visibleSlots = Math.max(0, Math.min(P9_COUNT, visibleCount) - 1)
+  const totalLen = visibleSlots * desiredStep
+
+  if (vw < 1024) {
+    return Math.max(0, totalLen / 2 - Math.min(vw, vh) * 0.3)
+  }
+
+  const referenceLen = Math.max(0, CASCADE_REFERENCE_COUNT - 1) * desiredStep
+  return Math.max(0, (totalLen - referenceLen) / 2)
 }
 
 export function compute(ctx) {
