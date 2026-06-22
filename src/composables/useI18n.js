@@ -55,7 +55,7 @@ const translations = {
   'project.mntk.title': { Ru: 'МНТК', En: 'MNTK' },
   'project.mntk.subtitle': { Ru: 'Москва, 212 м²', En: 'Moscow, 212 m²' },
   'project.sanremo.title': { Ru: 'Италия. Сан-Ремо', En: 'Italy. Sanremo' },
-  'project.sanremo.subtitle': { Ru: 'Сан-Ремо, 82 м²', En: 'Sanremo, 82 m²' },
+  'project.sanremo.subtitle': { Ru: '82 м²', En: '82 m²' },
 
   // ProjectPage
   'pp.projects': { Ru: 'Проекты', En: 'Projects' },

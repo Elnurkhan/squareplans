@@ -15,7 +15,13 @@
           </svg>
         </button>
 
-        <button class="lightbox-arrow lightbox-prev" @click="prev" aria-label="Предыдущее фото">
+        <button
+          class="lightbox-arrow lightbox-prev"
+          @click="onPrevClick"
+          @touchstart="onSwipeStart"
+          @touchend="onSwipeEnd"
+          aria-label="Предыдущее фото"
+        >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <polyline points="15,4 7,12 15,20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -25,7 +31,13 @@
           <img :src="currentSrc" :key="currentIndex" alt="" class="lightbox-image" />
         </div>
 
-        <button class="lightbox-arrow lightbox-next" @click="next" aria-label="Следующее фото">
+        <button
+          class="lightbox-arrow lightbox-next"
+          @click="onNextClick"
+          @touchstart="onSwipeStart"
+          @touchend="onSwipeEnd"
+          aria-label="Следующее фото"
+        >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <polyline points="9,4 17,12 9,20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -103,12 +115,37 @@ function next() {
 
 // Swipe support for mobile
 let swipeStartX = 0
+let suppressNavClick = false
+let suppressNavClickTimer = null
+
+function consumeSuppressedNavClick() {
+  if (!suppressNavClick) return false
+  suppressNavClick = false
+  window.clearTimeout(suppressNavClickTimer)
+  suppressNavClickTimer = null
+  return true
+}
+
+function onPrevClick() {
+  if (!consumeSuppressedNavClick()) prev()
+}
+
+function onNextClick() {
+  if (!consumeSuppressedNavClick()) next()
+}
+
 function onSwipeStart(e) {
   swipeStartX = e.touches[0].clientX
 }
 function onSwipeEnd(e) {
   const dx = e.changedTouches[0].clientX - swipeStartX
   if (Math.abs(dx) > 50) {
+    suppressNavClick = true
+    window.clearTimeout(suppressNavClickTimer)
+    suppressNavClickTimer = window.setTimeout(() => {
+      suppressNavClick = false
+      suppressNavClickTimer = null
+    }, 500)
     dx > 0 ? prev() : next()
   }
 }
@@ -126,6 +163,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown)
+  window.clearTimeout(suppressNavClickTimer)
   document.body.style.overflow = ''
 })
 </script>
@@ -196,7 +234,7 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 3;
+  z-index: 2;
   width: 48px;
   height: 48px;
   border: none;
@@ -220,6 +258,33 @@ onBeforeUnmount(() => {
 
 .lightbox-next {
   right: 0.8rem;
+}
+
+@media (min-width: 1024px) {
+  .lightbox-arrow {
+    top: 0;
+    bottom: 0;
+    width: 50vw;
+    height: 100%;
+    padding: 0 clamp(24px, 3vw, 56px);
+    box-sizing: border-box;
+    transform: none;
+  }
+
+  .lightbox-arrow svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  .lightbox-prev {
+    left: 0;
+    justify-content: flex-start;
+  }
+
+  .lightbox-next {
+    right: 0;
+    justify-content: flex-end;
+  }
 }
 
 .lightbox-main {
@@ -349,21 +414,28 @@ onBeforeUnmount(() => {
   }
 
   .lightbox-arrow {
-    width: 36px;
-    height: 36px;
+    top: 0;
+    bottom: 0;
+    width: 50vw;
+    height: 100%;
+    padding: 0 12px;
+    box-sizing: border-box;
+    transform: none;
   }
 
   .lightbox-arrow svg {
-    width: 18px;
-    height: 18px;
+    width: 24px;
+    height: 24px;
   }
 
   .lightbox-prev {
-    left: 0.3rem;
+    left: 0;
+    justify-content: flex-start;
   }
 
   .lightbox-next {
-    right: 0.3rem;
+    right: 0;
+    justify-content: flex-end;
   }
 
   .lightbox-thumbs {

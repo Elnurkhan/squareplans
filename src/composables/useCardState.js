@@ -164,8 +164,8 @@ export function useCardState() {
     'projects/afi/1.jpg',   'projects/level/1.jpg',  'projects/mosfilm/001.jpg', 'projects/n100/2.jpg',  'projects/n35/1.jpg',
     'projects/afi/2.jpg',   'projects/level/2.jpg',  'projects/mosfilm/002.jpg', 'projects/n100/3.jpg',  'projects/n35/2.jpg',
     'projects/afi/3.jpg',   'projects/level/3.jpg',  'projects/mosfilm/003.jpg', 'projects/n100/4.jpg',  'projects/n35/3.jpg',
-    'projects/afi/4.jpg',   'projects/level/4.jpg',  'projects/mosfilm/004.jpg', 'projects/n100/5.jpg',  'projects/n35/4.jpg',
-    'projects/afi/5.jpg',   'projects/level/5.jpg',  'projects/mosfilm/005.jpg', 'projects/n100/6.jpg',
+    'projects/afi/4.jpg',   'projects/level/4.jpg',  'projects/mosfilm/004.jpg', 'projects/Италия. Сан-Ремо/12.jpg', 'projects/n35/4.jpg',
+    'projects/afi/5.jpg',   'projects/Италия. Сан-Ремо/35.jpg', 'projects/mosfilm/005.jpg', 'projects/n100/6.jpg',
   ].map(toPublicUrl)
   const thumbnails = Array.from({ length: COUNT }, (_, i) => {
     const spreadSlot = getSpreadSlot(i)
@@ -610,19 +610,8 @@ export function useCardState() {
     if (!phase9) return
     const maxDiag = getCascadeDragBounds(window.innerWidth, window.innerHeight, p9ActiveCount)
     if (maxDiag > 0) {
-      if (deltaY < 0 && dragDiag >= maxDiag - 2) {
-        phase9 = false
-        phase9ExitTime = performance.now()
-        return
-      }
       dragDiag -= deltaY * 0.65
       dragMomentumDiag = -deltaY * 0.08
-      return
-    }
-
-    if (deltaY < 0) {
-      phase9 = false
-      phase9ExitTime = performance.now()
     }
   }
 

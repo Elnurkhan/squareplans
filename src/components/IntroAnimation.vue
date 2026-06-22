@@ -397,7 +397,8 @@ function onTouchMove(e) {
   if (window.innerWidth >= 1024) return
   const t = e.touches[0]
 
-  // Phase 9: diagonal drag, vertical swipe collapses cascade back to spread
+  // Phase 9: diagonal drag and vertical scroll move the cascade without
+  // leaving it. Returning to the spread is only available via the back button.
   if (cards.isInPhase9()) {
     if (!touchLocked) {
       const dx = Math.abs(t.clientX - touchStartX)
@@ -407,7 +408,6 @@ function onTouchMove(e) {
     if (touchLocked === 'v9') {
       const dy = t.clientY - touchStartY
       cards.scrollCascade(-dy * 0.4)
-      if (!cards.isInPhase9()) exitPhase9WithLenis()
       e.preventDefault()
       return
     }
@@ -527,7 +527,6 @@ function onWheel(e) {
   e.stopImmediatePropagation()
 
   cards.scrollCascade(e.deltaY)
-  if (!cards.isInPhase9()) exitPhase9WithLenis()
 }
 
 function tickFn(time, deltaTime) {
