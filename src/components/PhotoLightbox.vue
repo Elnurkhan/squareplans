@@ -246,6 +246,9 @@ onBeforeUnmount(() => {
   justify-content: center;
   opacity: 1;
   transition: opacity 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 .lightbox-arrow:hover {
