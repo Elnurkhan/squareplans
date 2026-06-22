@@ -28,8 +28,8 @@
           <div class="row reveal" style="--i: 5">
             <dt>Соц.сети:</dt>
             <dd class="socials">
-              <a href="#">Instagram</a>
-              <a href="#">Telegram</a>
+              <a href="https://www.instagram.com/squareplans?igsh=MXRjbTBoaGp6d2ZpZw==" target="_blank" rel="noopener noreferrer">Instagram</a>
+              <a href="https://t.me/squareplans" target="_blank" rel="noopener noreferrer">Telegram</a>
             </dd>
           </div>
         </dl>
