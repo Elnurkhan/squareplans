@@ -19,7 +19,7 @@
         <dl class="contacts-list">
           <div class="row reveal" style="--i: 3">
             <dt>Телефон:</dt>
-            <dd><a href="tel:+79000000000">+7-900-000-00-00</a></dd>
+            <dd><a href="tel:+79000000000">+7 (985) 575-55-83</a></dd>
           </div>
           <div class="row reveal" style="--i: 4">
             <dt>E-mail:</dt>

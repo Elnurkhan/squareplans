@@ -27,7 +27,7 @@
           </p>
 
           <h2 class="quote reveal" style="--i: 4">
-            Каждый проект нашей студии&nbsp;— это&nbsp;не&nbsp;шаблонное
+            Каждый наш проект&nbsp;— это&nbsp;не&nbsp;шаблонное
             решение, а&nbsp;точное отражение вас и&nbsp;вашего образа жизни.
           </h2>
 
@@ -36,12 +36,7 @@
             своё пространство, стиль и&nbsp;время.
           </p>
 
-          <div class="stat-row reveal" style="--i: 6">
-            <span class="stat-num">25+</span>
-            <span class="stat-label">Реализованных интерьеров</span>
-          </div>
-
-          <section class="mission-section reveal" style="--i: 7">
+          <section class="mission-section reveal" style="--i: 6">
             <h3 class="mission-title">Миссия</h3>
             <div class="mission-grid">
               <p class="mission-text">
@@ -161,13 +156,9 @@ onBeforeUnmount(() => registerPage(2, null))
 
 /* Explicit per-pair gaps in the text column. */
 .title + .lede { margin-top: 12px; }
-.lede-main + .quote { margin-top: 36px; }
+.lede-main + .quote { margin-top: 72px; }
 .quote + .lede { margin-top: 12px; }
-/* Both auto: free vertical space splits equally before & after stat-row,
-   centering it between the lede above and the mission-section below.
-   Mission still ends up flush with the bottom of the photo. */
-.lede + .stat-row { margin-top: auto; }
-.stat-row + .mission-section { margin-top: auto; }
+.lede + .mission-section { margin-top: auto; }
 
 .quote {
   font-family: 'Petrov Sans Trial', Georgia, serif;
@@ -180,29 +171,7 @@ onBeforeUnmount(() => registerPage(2, null))
   max-width: 640px;
 }
 
-.stat-row {
-  display: flex;
-  align-items: baseline;
-  gap: 1rem;
-}
-.stat-num {
-  font-family: 'Petrov Sans Trial', Georgia, serif;
-  font-size: clamp(2rem, 2.8vw, 2.6rem);
-  font-weight: 200;
-  line-height: 1;
-  color: #14131a;
-  letter-spacing: -0.1em;
-  font-feature-settings: 'tnum';
-}
-
-.stat-label {
-  font-size: 0.85rem;
-  line-height: 1.3;
-  color: rgba(20, 20, 26, 0.7);
-  font-weight: 300;
-}
-
-/* ── Mission (sits at bottom of text column via `.stat-row + .mission-section`) ── */
+/* ── Mission ── */
 .mission-title {
   font-family: 'Petrov Sans Trial', Georgia, serif;
   font-size: clamp(1.15rem, 1.5vw, 1.5rem);
@@ -312,13 +281,7 @@ onBeforeUnmount(() => registerPage(2, null))
     margin-bottom: 36px;
   }
 
-  .stat-num {
-    margin-right: 12px;
-    margin-bottom: 36px;
-  }
-
   .quote,
-  .stat-row,
   .mission-section,
   .lede:not(.lede-main) {
     order: 5;
@@ -362,10 +325,6 @@ onBeforeUnmount(() => registerPage(2, null))
     object-fit: cover;
     object-position: center 24%;
     margin: 0 auto 24px;
-  }
-
-  .stat-num {
-    margin-bottom: 24px;
   }
 }
 </style>
