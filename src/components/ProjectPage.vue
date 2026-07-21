@@ -1,30 +1,27 @@
 <template>
   <div class="pp" ref="rootEl">
+    <div class="pp-body">
 
     <!-- ── Projects overview ── -->
-    <section class="pp-projects-overview">
+    <section class="pp-projects-overview" ref="poSectionEl">
       <div class="pp-po-header">
-        <div class="pp-po-left rv">
-          <h2 class="pp-po-title">Проекты</h2>
+        <div class="pp-po-left">
+          <h2 class="pp-po-title">{{ t('pp.projects') }}</h2>
           <span class="pp-po-count" ref="countEl">0+</span>
         </div>
-        <div class="pp-po-desc rv" style="transition-delay:.15s">
-          <p>
-            Наши проекты&nbsp;&mdash; это&nbsp;всегда индивидуальный подход и&nbsp;работа
-            без&nbsp;шаблонов. Поэтому нас&nbsp;выбирают клиенты, которые
-            готовы доверить нам&nbsp;своё пространство, стиль и&nbsp;время.
-          </p>
+        <div class="pp-po-desc">
+          <p>{{ t('pp.projects.desc') }}</p>
         </div>
       </div>
       <div class="pp-po-gallery">
-        <div class="pp-po-img rv rv-img">
-          <img src="https://picsum.photos/seed/po1/600/420" alt="" loading="lazy" />
+        <div class="pp-po-img pp-po-side">
+          <img :src="`${$base}projects-optimized/afi/1.jpg`" alt="" loading="lazy" />
         </div>
         <div class="pp-po-img pp-po-center" ref="poCenterImg">
-          <img src="https://picsum.photos/seed/po2/600/420" alt="" loading="lazy" />
+          <img :src="`${$base}projects-optimized/level/1.jpg`" alt="" loading="lazy" />
         </div>
-        <div class="pp-po-img rv rv-img" style="transition-delay:.15s">
-          <img src="https://picsum.photos/seed/po3/600/420" alt="" loading="lazy" />
+        <div class="pp-po-img pp-po-side">
+          <img :src="`${$base}projects-optimized/mosfilm/001.jpg`" alt="" loading="lazy" />
         </div>
       </div>
     </section>
@@ -33,41 +30,35 @@
     <section class="pp-aesthetics">
       <div class="pp-ae-text">
         <div class="pp-ae-title rv">
-          <p>Эстетика и&nbsp;безупречный результат</p>
+          <p>{{ t('pp.aesthetics.title') }}</p>
         </div>
         <div class="pp-ae-desc rv" style="transition-delay:.15s">
-          <p>
-            Наша работа&nbsp;&mdash; это&nbsp;всегда сложная реализация
-            и&nbsp;проекты высокого уровня, где&nbsp;каждая деталь имеет
-            значение.
-          </p>
+          <p>{{ t('pp.aesthetics.desc') }}</p>
         </div>
       </div>
       <div class="pp-ae-photo rv rv-img" style="transition-delay:.2s">
-        <img src="https://picsum.photos/seed/ae-hero/800/560" alt="" loading="lazy" />
+        <img :src="`${$base}projects-optimized/n35/1.jpg`" alt="" loading="lazy" />
       </div>
     </section>
 
     <!-- ── Mission ── -->
     <section class="pp-mission">
-      <span class="pp-mission-label rv">Миссия</span>
+      <span class="pp-mission-label rv">{{ t('pp.mission') }}</span>
       <h2 class="pp-mission-quote rv" style="transition-delay:.1s">
-        Воплощать идеи в&nbsp;реальность так, чтобы результат
-        превзошёл ожидания
+        {{ t('pp.mission.quote') }}
       </h2>
       <div class="pp-mission-photo rv rv-img" style="transition-delay:.2s">
-        <img src="https://picsum.photos/seed/mission/900/600" alt="" loading="lazy" />
+        <img :src="`${$base}projects-optimized/n100/6.jpg`" alt="" loading="lazy" />
       </div>
     </section>
-    
-    <!-- ── Hero banner ── -->
-    <section class="pp-banner" style="margin-top: 150px">
-      <div class="pp-banner-img rv rv-img">
-        <img src="https://picsum.photos/seed/banner-end/1800/900" alt="" loading="lazy" />
-        <p class="pp-banner-text">
-          Эксклюзивность, внимание к&nbsp;деталям<br>
-          и&nbsp;безупречный сервис.
-        </p>
+
+    </div><!-- /.pp-body -->
+
+    <!-- ── Hero banner (sticky, revealed behind content) ── -->
+    <section class="pp-banner" ref="bannerEl">
+      <div class="pp-banner-img rv rv-img" ref="bannerImgEl">
+        <img :src="`${$base}projects-optimized/afi/3.jpg`" alt="" loading="lazy" />
+        <p class="pp-banner-text" v-html="t('pp.banner.text')"></p>
       </div>
     </section>
 
@@ -75,17 +66,23 @@
     <footer class="pp-footer" data-nav="3">
       <div class="pp-footer-inner">
         <div class="pp-footer-col">
-          <span class="pp-footer-brand">SQUARE PLANS</span>
-          <span class="pp-footer-copy">&copy;2026. Все права защищены</span>
+          <img class="pp-footer-brand" :src="`${$base}logo.svg`" alt="SQUAREPLANS" />
+          <span class="pp-footer-copy">{{ t('pp.footer.copy') }}</span>
         </div>
         <div class="pp-footer-col">
-          <a href="#">Instagram</a>
-          <a href="#">Telegram</a>
+          <a href="https://www.instagram.com/squareplans?igsh=MXRjbTBoaGp6d2ZpZw==">Instagram</a>
+          <a href="https://t.me/squareplans">Telegram</a>
           <a href="#">squareplans@gmail.com</a>
         </div>
         <div class="pp-footer-col pp-footer-col-right">
-          <span class="pp-footer-lang">Ru ↓</span>
-          <span class="pp-footer-dev">Разработка сайта</span>
+          <div class="pp-footer-lang" @click="langOpen = !langOpen">
+            <span class="pp-footer-lang-current">{{ lang }} ↓</span>
+            <ul v-if="langOpen" class="pp-footer-lang-menu">
+              <li @click.stop="setLang('Ru'); langOpen = false">Ru</li>
+              <li @click.stop="setLang('En'); langOpen = false">En</li>
+            </ul>
+          </div>
+          <span class="pp-footer-dev">{{ t('pp.footer.dev') }}</span>
         </div>
       </div>
     </footer>
@@ -97,15 +94,22 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useI18n } from '@/composables/useI18n'
 
 gsap.registerPlugin(ScrollTrigger)
 
+const { lang, t, setLang } = useI18n()
+const langOpen = ref(false)
 const rootEl = ref(null)
 const countEl = ref(null)
 const poCenterImg = ref(null)
+const poSectionEl = ref(null)
+const bannerEl = ref(null)
+const bannerImgEl = ref(null)
 let observer = null
-let countObserver = null
-let centerST = null
+let poObserver = null
+let poTl = null
+let bannerTick = null
 
 const moreProjects = [
   { id: 1, src: 'https://picsum.photos/seed/proj1/600/750', title: 'Лофт в Красном Октябре' },
@@ -115,6 +119,7 @@ const moreProjects = [
 ]
 
 onMounted(() => {
+  // Reveal system for other sections (aesthetics, mission, etc.)
   observer = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
@@ -128,58 +133,121 @@ onMounted(() => {
   )
   rootEl.value?.querySelectorAll('.rv').forEach((el) => observer.observe(el))
 
-  // Center gallery image: starts lower, rises on scroll
-  if (poCenterImg.value) {
-    const gallery = rootEl.value?.querySelector('.pp-po-gallery')
-    if (gallery) {
-      centerST = gsap.fromTo(
-        poCenterImg.value,
-        { yPercent: 30, opacity: 0 },
-        {
-          yPercent: 0,
-          opacity: 1,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: gallery,
-            start: 'top 80%',
-            end: 'top 20%',
-            scrub: true,
-          },
-        }
-      )
-    }
-  }
+  // ── Projects overview: smooth GSAP reveal (berch.ch style) ──
+  if (poSectionEl.value) {
+    const title = poSectionEl.value.querySelector('.pp-po-title')
+    const count = countEl.value
+    const desc = poSectionEl.value.querySelector('.pp-po-desc')
+    const sideImgs = poSectionEl.value.querySelectorAll('.pp-po-side')
+    const centerImg = poCenterImg.value
 
-  // Count-up: 0 → 25 when the counter scrolls into view
-  if (countEl.value) {
-    countObserver = new IntersectionObserver(
+    // Initial hidden states
+    gsap.set([title, count], { y: 70, opacity: 0 })
+    gsap.set(desc, { y: 50, opacity: 0 })
+    gsap.set(sideImgs, { clipPath: 'inset(100% 0 0 0)' })
+    gsap.set(centerImg, { clipPath: 'inset(100% 0 0 0)' })
+
+    poObserver = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (!entry.isIntersecting) continue
-          const target = entry.target
-          countObserver.unobserve(target)
+          poObserver.disconnect()
+
+          poTl = gsap.timeline()
+
+          // Title slides up — slow, smooth
+          poTl.to(title, {
+            y: 0, opacity: 1,
+            duration: 1.5,
+            ease: 'power3.out',
+          })
+          // Count follows with slight overlap
+          .to(count, {
+            y: 0, opacity: 1,
+            duration: 1.5,
+            ease: 'power3.out',
+          }, 0.12)
+          // Description fades up
+          .to(desc, {
+            y: 0, opacity: 1,
+            duration: 1.3,
+            ease: 'power3.out',
+          }, 0.3)
+          // Gallery images reveal with clip-path — staggered
+          .to(sideImgs[0], {
+            clipPath: 'inset(0% 0 0 0)',
+            duration: 1.6,
+            ease: 'power4.out',
+          }, 0.5)
+          .to(centerImg, {
+            clipPath: 'inset(0% 0 0 0)',
+            duration: 1.6,
+            ease: 'power4.out',
+          }, 0.65)
+          .to(sideImgs[1], {
+            clipPath: 'inset(0% 0 0 0)',
+            duration: 1.6,
+            ease: 'power4.out',
+          }, 0.8)
+
+          // Count-up: 0 → 25 integrated into the flow
           const state = { v: 0 }
           gsap.to(state, {
             v: 25,
-            duration: 1.6,
+            duration: 2,
+            delay: 0.3,
             ease: 'power2.out',
             onUpdate: () => {
-              target.textContent = Math.round(state.v) + '+'
+              if (count) count.textContent = Math.round(state.v) + '+'
             },
           })
         }
       },
-      { threshold: 0.4 }
+      { threshold: 0.05 }
     )
-    countObserver.observe(countEl.value)
+    poObserver.observe(poSectionEl.value)
+  }
+
+  // ── Banner: darken → clear + text parallax based on pp-body scroll ──
+  if (bannerImgEl.value && rootEl.value) {
+    const overlay = bannerImgEl.value
+    const bannerText = bannerImgEl.value.querySelector('.pp-banner-text')
+    const body = rootEl.value.querySelector('.pp-body')
+
+    const bannerImg = bannerImgEl.value.querySelector('img')
+
+    bannerTick = () => {
+      if (!body || !body.offsetParent) return
+      const rect = body.getBoundingClientRect()
+      const vh = window.innerHeight
+      // t = 0 when body bottom covers the viewport, t = 1 when fully scrolled past
+      const t = Math.max(0, Math.min(1, 1 - rect.bottom / vh))
+
+      // Dimming overlay
+      overlay.style.setProperty('--banner-dim', String(1 - t))
+
+      // Text parallax: moves slower than scroll (lags behind → depth feel)
+      if (bannerText) {
+        const textY = (1 - t) * 80
+        bannerText.style.transform = `translateY(${textY}px)`
+        bannerText.style.opacity = String(Math.min(1, t * 1.8))
+      }
+
+      // Image counter-parallax: subtle upward shift (faster layer)
+      if (bannerImg) {
+        const imgY = (1 - t) * -25
+        bannerImg.style.transform = `translateY(${imgY}px) scale(1.08)`
+      }
+    }
+    gsap.ticker.add(bannerTick)
   }
 })
 
 onBeforeUnmount(() => {
   observer?.disconnect()
-  countObserver?.disconnect()
-  centerST?.scrollTrigger?.kill()
-  centerST?.kill()
+  poObserver?.disconnect()
+  if (bannerTick) gsap.ticker.remove(bannerTick)
+  poTl?.kill()
 })
 
 defineExpose({ rootEl })
@@ -235,7 +303,7 @@ defineExpose({ rootEl })
 .pp-po-title {
 
   font-weight: 300;
-  font-size: clamp(1.6rem, 3.5vw, 2.8rem);
+  font-size: clamp(2.2rem, 5vw, 4rem);
   letter-spacing: -0.01em;
   color: #1a1a1a;
   margin: 0;
@@ -245,14 +313,14 @@ defineExpose({ rootEl })
 .pp-po-count {
 
   font-weight: 300;
-  font-size: clamp(1.6rem, 3.5vw, 2.8rem);
+  font-size: clamp(2.2rem, 5vw, 4rem);
   letter-spacing: -0.01em;
   color: #1a1a1a;
 }
 
 .pp-po-desc {
   padding-top: 0.5rem;
-  padding-right: var(--pad);
+  padding-right: 0;
 }
 
 .pp-po-desc p {
@@ -260,7 +328,7 @@ defineExpose({ rootEl })
   font-weight: 300;
   line-height: 1.85;
   letter-spacing: 0.02em;
-  color: rgba(26, 26, 26, 0.5);
+  color: #1a1a1a;
   margin: 0;
 }
 
@@ -275,8 +343,10 @@ defineExpose({ rootEl })
   overflow: hidden;
 }
 
-.pp-po-center {
-  will-change: transform;
+.pp-po-center,
+.pp-po-side {
+  will-change: clip-path;
+  overflow: hidden;
 }
 
 .pp-po-img:nth-child(1) {
@@ -328,7 +398,7 @@ defineExpose({ rootEl })
   font-weight: 300;
   font-style: italic;
   letter-spacing: 0.02em;
-  color: rgba(26, 26, 26, 0.6);
+  color: #1a1a1a;
   margin: 0;
 }
 
@@ -337,14 +407,13 @@ defineExpose({ rootEl })
   font-weight: 300;
   line-height: 1.85;
   letter-spacing: 0.02em;
-  color: rgba(26, 26, 26, 0.5);
+  color: #1a1a1a;
   margin: 0;
 }
 
 .pp-ae-photo {
   margin-left: calc(100% * 2 / 3);
   width: calc(100% / 3);
-  border-radius: 8px;
   overflow: hidden;
 }
 
@@ -367,9 +436,10 @@ defineExpose({ rootEl })
   display: block;
   font-size: 0.6rem;
   font-weight: 400;
-  letter-spacing: 0.35em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: #1a1a1a;
+  font-style: italic;
   margin-bottom: 1.5rem;
 }
 
@@ -377,7 +447,7 @@ defineExpose({ rootEl })
 
   font-weight: 300;
   font-size: clamp(1.3rem, 2.8vw, 2rem);
-  line-height: 1.6;
+  line-height: 1.3;
   letter-spacing: 0.01em;
   color: #1a1a1a;
   max-width: 680px;
@@ -385,14 +455,15 @@ defineExpose({ rootEl })
 }
 
 .pp-mission-photo {
-  max-width: 560px;
+  max-width: 220px;
+  aspect-ratio: 4 / 5;
   margin: 0 auto;
-  border-radius: 8px;
   overflow: hidden;
 }
 
 .pp-mission-photo img {
   width: 100%;
+  height: 100%;
   display: block;
   object-fit: cover;
 }
@@ -682,11 +753,37 @@ section.pp-bleed img {
 }
 
 /* ══════════════════
-   BANNER
+   BODY (content above banner)
    ══════════════════ */
+.pp-body {
+  position: relative;
+  z-index: 2;
+  background: #fafafa;
+  padding-bottom: 150px;
+}
+
+/* ══════════════════
+   BANNER (sticky reveal from behind)
+   ══════════════════ */
+.pp-banner {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+}
+
 .pp-banner-img {
   position: relative;
   overflow: hidden;
+}
+
+.pp-banner-img::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: var(--banner-dim, 1);
+  z-index: 1;
+  pointer-events: none;
 }
 
 .pp-banner-img img {
@@ -700,13 +797,13 @@ section.pp-bleed img {
   position: absolute;
   bottom: clamp(2rem, 5vw, 4rem);
   left: clamp(2rem, 5vw, 4rem);
+  z-index: 2;
 
   font-weight: 300;
   font-size: clamp(1.4rem, 3vw, 2.6rem);
-  line-height: 1.4;
+  line-height: 1.2;
   color: #fafafa;
   margin: 0;
-  max-width: 600px;
 }
 
 /* ══════════════════
@@ -733,7 +830,7 @@ section.pp-bleed img {
 }
 
 .pp-footer-col a {
-  font-size: 0.72rem;
+  font-size: 0.85rem;
   font-weight: 300;
   color: rgba(26, 26, 26, 0.5);
   text-decoration: none;
@@ -745,30 +842,67 @@ section.pp-bleed img {
 }
 
 .pp-footer-brand {
-  font-size: 0.8rem;
-  font-weight: 400;
-  letter-spacing: 0.15em;
-  color: #1a1a1a;
+  width: clamp(80px, 12vw, 101px);
+  height: auto;
 }
 
 .pp-footer-copy {
-  font-size: 0.65rem;
+  font-size: 0.78rem;
   font-weight: 300;
   color: rgba(26, 26, 26, 0.35);
 }
 
 .pp-footer-col-right {
   align-items: flex-end;
+  justify-content: space-between;
+  align-self: stretch;
 }
 
 .pp-footer-lang {
-  font-size: 0.72rem;
+  position: relative;
+  font-size: 0.85rem;
   font-weight: 300;
   color: rgba(26, 26, 26, 0.5);
+  cursor: pointer;
+  user-select: none;
+}
+
+.pp-footer-lang-current {
+  transition: color 0.3s;
+}
+
+.pp-footer-lang-current:hover {
+  color: #1a1a1a;
+}
+
+.pp-footer-lang-menu {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  list-style: none;
+  margin: 0 0 0.4rem;
+  padding: 0.3rem 0;
+  background: #fafafa;
+  border: 1px solid rgba(26, 26, 26, 0.1);
+  border-radius: 4px;
+  min-width: 60px;
+}
+
+.pp-footer-lang-menu li {
+  padding: 0.3rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 300;
+  color: rgba(26, 26, 26, 0.5);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.pp-footer-lang-menu li:hover {
+  color: #1a1a1a;
 }
 
 .pp-footer-dev {
-  font-size: 0.65rem;
+  font-size: 0.78rem;
   font-weight: 300;
   color: rgba(26, 26, 26, 0.35);
 }
@@ -792,8 +926,18 @@ section.pp-bleed img {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-width: 1023px) and (max-height: 520px) and (orientation: landscape) {
   .pp {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .pp-body {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .pp-footer {
     padding-left: 15px;
     padding-right: 15px;
   }
@@ -801,7 +945,7 @@ section.pp-bleed img {
   .pp-po-header {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 0.6rem;
     padding: 0 1rem;
   }
 
@@ -810,9 +954,10 @@ section.pp-bleed img {
   }
 
   .pp-po-left {
+    width: 100%;
     display: flex;
     align-items: baseline;
-    gap: 1.5rem;
+    justify-content: space-between;
   }
 
   .pp-po-gallery {
@@ -822,7 +967,7 @@ section.pp-bleed img {
   .pp-ae-text {
     grid-template-columns: 1fr;
     gap: 1.5rem;
-    padding: 0 var(--pad);
+    padding: 0;
   }
 
   .pp-ae-title {
@@ -857,6 +1002,68 @@ section.pp-bleed img {
     align-items: flex-start;
     flex-direction: row;
     justify-content: space-between;
+  }
+
+  .pp-banner-text {
+    font-size: 1.2rem;
+    left: 1.2rem;
+    bottom: 3rem;
+  }
+}
+
+@media (max-width: 1023px) and (max-height: 520px) and (orientation: landscape) {
+  .pp-projects-overview {
+    padding-top: 3.5rem;
+  }
+
+  .pp-body {
+    padding-bottom: 80px;
+  }
+
+  .pp-po-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .pp-po-title,
+  .pp-po-count {
+    font-size: 2rem;
+  }
+
+  .pp-po-gallery {
+    max-height: 38vh;
+    overflow: hidden;
+  }
+
+  .pp-aesthetics {
+    padding: 3rem 0;
+  }
+
+  .pp-ae-photo {
+    width: min(68vw, 420px);
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .pp-ae-photo img {
+    max-height: 42vh;
+    object-fit: cover;
+  }
+
+  .pp-mission {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+
+  .pp-mission-photo {
+    max-width: 128px;
+  }
+
+  .pp-footer-inner {
+    gap: 1rem;
+  }
+
+  .pp-banner-img img {
+    min-height: 58vh;
   }
 }
 

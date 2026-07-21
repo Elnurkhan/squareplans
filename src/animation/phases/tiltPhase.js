@@ -1,9 +1,9 @@
 import { COUNT, TOTAL_CARDS } from '../constants'
 
 export function compute(ctx) {
-  const { progress, tgt, tgtText, centerIdx, halfCount, els } = ctx
+  const { progress, tgt, tgtText, centerIdx, halfCount, els, stackScale = 2.6 } = ctx
 
-  const stackProgress = (progress - 0.85) / 0.07
+  const stackProgress = (progress - 0.80) / 0.12
 
   const tiltP = Math.min(1, stackProgress / 0.35)
   const cardsP = Math.max(0, (stackProgress - 0.25) / 0.75)
@@ -18,7 +18,7 @@ export function compute(ctx) {
     if (rawDist > halfCount) rawDist -= COUNT
     if (rawDist < -halfCount) rawDist += COUNT
 
-    tgt[i].s = 2.6
+    tgt[i].s = stackScale
 
     if (rawDist === 0) {
       tgt[i].x = 0; tgt[i].y = 0; tgt[i].z = tiltZ

@@ -23,6 +23,8 @@ float hash(vec2 p) {
   return fract((p3.x + p3.y) * p3.z);
 }
 
+const float CORNER_R = 0.075; // UV-space radius, matches geometry R
+
 void main() {
   // ── Side faces: extend the photo's edge along the depth, lit ──
   if (vFaceId > 0.5) {
@@ -30,18 +32,16 @@ void main() {
     vec3 lightDir = normalize(vec3(0.35, -0.65, 0.7));
     float diff = max(dot(n, lightDir), 0.0);
 
-    // Back face (faceId == 1) stays dark — it's never really visible
+    // Back face (faceId == 1) — mesh is already rounded
     if (vFaceId < 1.5) {
       vec3 base = vec3(0.08, 0.08, 0.09);
       gl_FragColor = vec4(base * (0.55 + 0.7 * diff), uAlpha);
       return;
     }
 
-    // Left/right/top/bottom: sample the corresponding edge pixel of the image.
-    // Clamp just inside the edge to avoid bleeding from CLAMP_TO_EDGE neighbours.
+    // Side faces: sample the nearest edge pixel of the photo
     vec2 uvC = clamp(vUv, 0.002, 0.998);
     vec3 texCol = texture2D(uTex, uvC).rgb;
-    // Darken a touch so sides read as the "thickness" of the card, not a second face
     texCol *= (0.30 + 0.40 * diff);
     gl_FragColor = vec4(texCol, uAlpha);
     return;
@@ -50,12 +50,11 @@ void main() {
   vec2 p = (vUv - 0.5) * 2.0 * vec2(uAspect, 1.0);
   vec2 halfSize = vec2(uAspect, 1.0);
 
-  // ── 1. Front face is the full box face — no inset, no rounded corners.
-  //      SDF still drives the edge factor / fresnel below.
-  float d = sdfRoundBox(p, halfSize, 0.0);
+  // ── 1. Mesh is a rounded-rect fan — no alpha clip needed ──
   float cAlpha = 1.0;
 
-  // ── 2. Edge factor ──
+  // ── 2. Edge factor (p-space for fresnel/bevel effects) ──
+  float d = sdfRoundBox(p, halfSize, CORNER_R * 2.0);
   float bevelWidth = 0.15;
   float edgeFactor = 1.0 - smoothstep(0.0, bevelWidth, -d);
   float fresnel = pow(edgeFactor, 2.0);

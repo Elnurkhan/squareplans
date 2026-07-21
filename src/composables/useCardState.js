@@ -1,7 +1,12 @@
-import { COUNT, P9_COUNT, EASE, HOVER_EASE, TOTAL_CARDS, lerp } from '@/animation/constants'
+import { COUNT, P9_COUNT, EASE, HOVER_EASE, TOTAL_CARDS, usesSmallMobileCards } from '@/animation/constants'
 import { computeTargets } from '@/animation/phases'
+import { getCascadeDragBounds } from '@/animation/phases/cascadePhase'
+import { useI18n } from '@/composables/useI18n'
+
+const base = import.meta.env.BASE_URL
 
 export function useCardState() {
+  const { t } = useI18n()
   let currentProgress = 0
   let phase9 = false
   let phase9Progress = 0
@@ -25,27 +30,120 @@ export function useCardState() {
   const p8Dim = Array.from({ length: COUNT }, () => 0)
   const p9Hover = Array.from({ length: P9_COUNT }, () => 0)
 
-  // Project names for spread phase hover (one per visible card, TOTAL_CARDS + 1)
-  const projectNames = [
-    'AFI Park Воронцовский',
-    'Level Мичуринский',
-    'Мосфильмовский',
-    'Настоящее 100 кв.м',
-    'Настоящее 35 кв.м',
-    'AFI Park Воронцовский',
+  // Project label keys for spread phase hover (one per visible card, TOTAL_CARDS + 1)
+  const projectLabelKeys = [
+    { title: 'project.level.title', subtitle: 'project.level.subtitle', album: 'level' },
+    { title: 'project.afi.title', subtitle: 'project.afi.subtitle', album: 'afi' },
+    { title: 'project.n35.title', subtitle: 'project.n35.subtitle', album: 'n35' },
+    { title: 'project.mosfilm.title', subtitle: 'project.mosfilm.subtitle', album: 'mosfilm' },
+    { title: 'project.n100.title', subtitle: 'project.n100.subtitle', album: 'n100' },
+    { title: 'project.mntk.title', subtitle: 'project.mntk.subtitle', album: 'mntk' },
+    { title: 'project.sanremo.title', subtitle: 'project.sanremo.subtitle', album: 'sanremo' },
   ]
+
+  const spreadProjectPhotos = [
+    'projects/level/5.jpg',
+    'projects/afi/9.jpg',
+    'projects/n35/14.jpg',
+    'projects/mosfilm/010.jpg',
+    'projects/n100/5.jpg',
+    'projects/Ресторан МНТК им.Федорова/2.jpg',
+    'projects/Италия. Сан-Ремо/1.jpg',
+  ]
+
+  const projectAlbums = {
+    level: [
+      'projects/level/1.jpg', 'projects/level/2.jpg', 'projects/level/3.jpg', 'projects/level/4.jpg', 'projects/level/5.jpg',
+      'projects/level/6.jpg', 'projects/level/7.jpg', 'projects/level/8.jpg', 'projects/level/9.jpg', 'projects/level/10.jpg',
+      'projects/level/11.jpg', 'projects/level/12.jpg', 'projects/level/13.jpg', 'projects/level/14.jpg', 'projects/level/15.jpg',
+    ],
+    afi: [
+      'projects/afi/1.jpg', 'projects/afi/2.jpg', 'projects/afi/3.jpg', 'projects/afi/4.jpg', 'projects/afi/5.jpg',
+      'projects/afi/6.jpg', 'projects/afi/7.jpg', 'projects/afi/8.jpg', 'projects/afi/9.jpg', 'projects/afi/10.jpg',
+      'projects/afi/11.jpg', 'projects/afi/12.jpg', 'projects/afi/13.jpg', 'projects/afi/14.jpg', 'projects/afi/15.jpg',
+      'projects/afi/16.jpg', 'projects/afi/17.jpg', 'projects/afi/18.jpg',
+    ],
+    n35: [
+      'projects/n35/1.jpg', 'projects/n35/2.jpg', 'projects/n35/3.jpg', 'projects/n35/4.jpg', 'projects/n35/19.jpg',
+      'projects/n35/20.jpg', 'projects/n35/21.jpg', 'projects/n35/24.jpg', 'projects/n35/5.jpg', 'projects/n35/6.jpg',
+      'projects/n35/7.jpg', 'projects/n35/22.jpg', 'projects/n35/23.jpg', 'projects/n35/8.jpg', 'projects/n35/15.jpg',
+      'projects/n35/10.jpg', 'projects/n35/11.jpg', 'projects/n35/12.jpg', 'projects/n35/13.jpg', 'projects/n35/14.jpg',
+      'projects/n35/16.jpg', 'projects/n35/25.jpg',
+    ],
+    mosfilm: [
+      'projects/mosfilm/001.jpg', 'projects/mosfilm/002.jpg', 'projects/mosfilm/003.jpg', 'projects/mosfilm/004.jpg',
+      'projects/mosfilm/005.jpg', 'projects/mosfilm/006.jpg', 'projects/mosfilm/007.jpg', 'projects/mosfilm/009.jpg',
+      'projects/mosfilm/010.jpg', 'projects/mosfilm/011.jpg', 'projects/mosfilm/012.jpg', 'projects/mosfilm/013.jpg',
+      'projects/mosfilm/014.jpg', 'projects/mosfilm/015.jpg', 'projects/mosfilm/016.jpg', 'projects/mosfilm/017.jpg',
+      'projects/mosfilm/018.jpg', 'projects/mosfilm/019.jpg', 'projects/mosfilm/020.jpg', 'projects/mosfilm/021.jpg',
+      'projects/mosfilm/022.jpg', 'projects/mosfilm/023.jpg', 'projects/mosfilm/024.jpg', 'projects/mosfilm/025.jpg',
+      'projects/mosfilm/026.jpg', 'projects/mosfilm/027.jpg', 'projects/mosfilm/028.jpg', 'projects/mosfilm/029.jpg',
+      'projects/mosfilm/030.jpg', 'projects/mosfilm/031.jpg', 'projects/mosfilm/032.jpg', 'projects/mosfilm/033.jpg',
+      'projects/mosfilm/034.jpg', 'projects/mosfilm/035.jpg', 'projects/mosfilm/036.jpg',
+    ],
+    n100: [
+      'projects/n100/1,1.jpg', 'projects/n100/2.jpg', 'projects/n100/3.jpg', 'projects/n100/4.jpg', 'projects/n100/5.jpg',
+      'projects/n100/6.jpg', 'projects/n100/8.jpg', 'projects/n100/9.jpg', 'projects/n100/11.jpg', 'projects/n100/12.jpg',
+      'projects/n100/13.jpg', 'projects/n100/14.jpg', 'projects/n100/15.jpg', 'projects/n100/16.jpg', 'projects/n100/17.jpg',
+      'projects/n100/18.jpg', 'projects/n100/19.jpg', 'projects/n100/20.jpg', 'projects/n100/21.jpg', 'projects/n100/22.jpg',
+      'projects/n100/23.jpg', 'projects/n100/24.jpg', 'projects/n100/25.jpg', 'projects/n100/26.jpg', 'projects/n100/27.jpg',
+    ],
+    mntk: [
+      'projects/Ресторан МНТК им.Федорова/1.jpg', 'projects/Ресторан МНТК им.Федорова/2.jpg',
+      'projects/Ресторан МНТК им.Федорова/3.jpg', 'projects/Ресторан МНТК им.Федорова/4.jpg',
+      'projects/Ресторан МНТК им.Федорова/5.jpg', 'projects/Ресторан МНТК им.Федорова/6.jpg',
+      'projects/Ресторан МНТК им.Федорова/7.jpg', 'projects/Ресторан МНТК им.Федорова/8.jpg',
+      'projects/Ресторан МНТК им.Федорова/9.jpg', 'projects/Ресторан МНТК им.Федорова/10.jpg',
+      'projects/Ресторан МНТК им.Федорова/11.jpg', 'projects/Ресторан МНТК им.Федорова/12.jpg',
+      'projects/Ресторан МНТК им.Федорова/13.jpg', 'projects/Ресторан МНТК им.Федорова/14.jpg',
+    ],
+    sanremo: [
+      'projects/Италия. Сан-Ремо/1.jpg', 'projects/Италия. Сан-Ремо/2.jpg',
+      'projects/Италия. Сан-Ремо/3.jpg', 'projects/Италия. Сан-Ремо/4.jpg',
+      'projects/Италия. Сан-Ремо/5.jpg', 'projects/Италия. Сан-Ремо/6.jpg',
+      'projects/Италия. Сан-Ремо/7.jpg', 'projects/Италия. Сан-Ремо/8.jpg',
+      'projects/Италия. Сан-Ремо/9.jpg', 'projects/Италия. Сан-Ремо/10.jpg',
+      'projects/Италия. Сан-Ремо/11.jpg', 'projects/Италия. Сан-Ремо/12.jpg',
+      'projects/Италия. Сан-Ремо/13.jpg', 'projects/Италия. Сан-Ремо/14.jpg',
+      'projects/Италия. Сан-Ремо/15.jpg', 'projects/Италия. Сан-Ремо/16.jpg',
+      'projects/Италия. Сан-Ремо/17.jpg', 'projects/Италия. Сан-Ремо/18.jpg',
+      'projects/Италия. Сан-Ремо/19.jpg', 'projects/Италия. Сан-Ремо/20.jpg',
+      'projects/Италия. Сан-Ремо/21.jpg', 'projects/Италия. Сан-Ремо/22.jpg',
+      'projects/Италия. Сан-Ремо/23.jpg', 'projects/Италия. Сан-Ремо/24.jpg',
+      'projects/Италия. Сан-Ремо/25.jpg', 'projects/Италия. Сан-Ремо/26.jpg',
+      'projects/Италия. Сан-Ремо/27.jpg', 'projects/Италия. Сан-Ремо/28.jpg',
+      'projects/Италия. Сан-Ремо/29.jpg', 'projects/Италия. Сан-Ремо/30.jpg',
+      'projects/Италия. Сан-Ремо/31.jpg', 'projects/Италия. Сан-Ремо/32.jpg',
+      'projects/Италия. Сан-Ремо/33.jpg', 'projects/Италия. Сан-Ремо/34.jpg',
+      'projects/Италия. Сан-Ремо/35.jpg',
+    ],
+  }
+
+  function getSpreadSlot(cardIdx) {
+    const rotStep = (Math.PI * 2) / COUNT
+    const finalRot = -rotStep * 9
+    let cIdx = Math.round(((-Math.PI / 2 - finalRot) / (Math.PI * 2)) * COUNT) % COUNT
+    if (cIdx < 0) cIdx += COUNT
+    let slot = cardIdx - cIdx
+    if (slot > COUNT / 2) slot -= COUNT
+    if (slot < -COUNT / 2) slot += COUNT
+    return slot
+  }
 
   let cachedTitleEl = null
   let cachedPhilosophyEl = null
   let cachedSubEl = null
   let cachedBottomEl = null
-  let selectedProjectName = ''
+  let selectedProjectTitle = ''
+  let selectedProjectSubtitle = ''
+  let selectedProjectAlbum = 'level'
 
-  // Cascade collapse (scroll down in phase 9 compresses cards into a stack)
-  let cascadeCollapse = 0
-  let cascadeCollapseTarget = 0
   let phase9ExitTime = 0
   let lastWheelTime = 0
+  // When set, the next tick snaps `cur` directly to `tgt` instead of lerping.
+  // Used after returning from an overlay page so cards don't visibly catch up
+  // to fresh targets (e.g. when mobile viewport height shifts during nav).
+  let pendingSnap = false
 
   // Mobile drag (phase 8: horizontal, phase 9: along cascade diagonal)
   let dragOffsetX = 0
@@ -59,44 +157,57 @@ export function useCardState() {
   const cascadeAngle = -Math.atan2(900, 1440) * 0.9
   const cascadeDirX = Math.cos(cascadeAngle)
   const cascadeDirY = Math.sin(cascadeAngle)
+  const toPublicUrl = (path) => base + encodeURI(path.replace(/^projects\//, 'projects-optimized/'))
 
   // Real project photos distributed across 24 circle slots
   const projectPhotos = [
-    '/projects/afi/1.jpg',   '/projects/level/1.jpg',  '/projects/mosfilm/001.jpg', '/projects/n100/2.jpg',  '/projects/n35/1.jpg',
-    '/projects/afi/2.jpg',   '/projects/level/2.jpg',  '/projects/mosfilm/002.jpg', '/projects/n100/3.jpg',  '/projects/n35/2.jpg',
-    '/projects/afi/3.jpg',   '/projects/level/3.jpg',  '/projects/mosfilm/003.jpg', '/projects/n100/4.jpg',  '/projects/n35/3.jpg',
-    '/projects/afi/4.jpg',   '/projects/level/4.jpg',  '/projects/mosfilm/004.jpg', '/projects/n100/5.jpg',  '/projects/n35/4.jpg',
-    '/projects/afi/5.jpg',   '/projects/level/5.jpg',  '/projects/mosfilm/005.jpg', '/projects/n100/6.jpg',
-  ]
-  const thumbnails = Array.from({ length: COUNT }, (_, i) => ({
-    src: projectPhotos[i % projectPhotos.length],
-  }))
+    'projects/afi/1.jpg',   'projects/level/1.jpg',  'projects/mosfilm/001.jpg', 'projects/n100/2.jpg',  'projects/n35/1.jpg',
+    'projects/afi/2.jpg',   'projects/level/2.jpg',  'projects/mosfilm/002.jpg', 'projects/n100/3.jpg',  'projects/n35/2.jpg',
+    'projects/afi/3.jpg',   'projects/level/3.jpg',  'projects/mosfilm/003.jpg', 'projects/n100/4.jpg',  'projects/n35/3.jpg',
+    'projects/afi/4.jpg',   'projects/level/4.jpg',  'projects/mosfilm/004.jpg', 'projects/Италия. Сан-Ремо/12.jpg', 'projects/n35/4.jpg',
+    'projects/afi/5.jpg',   'projects/Италия. Сан-Ремо/35.jpg', 'projects/mosfilm/005.jpg', 'projects/n100/6.jpg',
+  ].map(toPublicUrl)
+  const thumbnails = Array.from({ length: COUNT }, (_, i) => {
+    const spreadSlot = getSpreadSlot(i)
+    const spreadPhoto = spreadSlot >= 0 && spreadSlot <= TOTAL_CARDS
+      ? spreadProjectPhotos[spreadSlot]
+      : null
+    return {
+      src: spreadPhoto ? toPublicUrl(spreadPhoto) : projectPhotos[i % projectPhotos.length],
+    }
+  })
 
-  // Phase 9 cascade: one hero photo per project + extras
-  const p9Photos = [
-    '/projects/afi/1.jpg',   '/projects/afi/2.jpg',   '/projects/afi/3.jpg',   '/projects/afi/4.jpg',
-    '/projects/level/1.jpg', '/projects/level/2.jpg',  '/projects/level/3.jpg', '/projects/level/4.jpg',
-    '/projects/mosfilm/001.jpg', '/projects/mosfilm/002.jpg', '/projects/mosfilm/003.jpg', '/projects/mosfilm/004.jpg',
-    '/projects/n100/2.jpg',  '/projects/n100/3.jpg',  '/projects/n100/4.jpg',  '/projects/n100/5.jpg',
-    '/projects/n35/1.jpg',   '/projects/n35/2.jpg',   '/projects/n35/3.jpg',   '/projects/n35/4.jpg',
-    '/projects/afi/5.jpg',
-  ]
   const p9Thumbnails = Array.from({ length: P9_COUNT }, (_, i) => ({
-    src: p9Photos[i % p9Photos.length],
+    src: '',
   }))
+  let p9LightboxPhotos = []
+  let p9ActiveCount = 0
+
+  function getAlbumPhotos(albumKey) {
+    return projectAlbums[albumKey] || projectAlbums.level
+  }
+
+  function setCascadeAlbum(albumKey) {
+    selectedProjectAlbum = projectAlbums[albumKey] ? albumKey : 'level'
+    const albumPhotos = [...new Set(getAlbumPhotos(selectedProjectAlbum).map(toPublicUrl))]
+    p9ActiveCount = Math.min(P9_COUNT, albumPhotos.length)
+    for (let i = 0; i < P9_COUNT; i++) {
+      p9Thumbnails[i].src = i < p9ActiveCount ? albumPhotos[i] : ''
+    }
+    p9LightboxPhotos = p9Thumbnails
+      .slice(0, p9ActiveCount)
+      .map(({ src }) => ({ src }))
+  }
+
+  function getP9LightboxPhotos() {
+    return p9LightboxPhotos.map(({ src }) => ({ src }))
+  }
+
+  setCascadeAlbum(selectedProjectAlbum)
 
   function setProgress(p) {
-    if (phase9) {
-      // In showcase scroll mode, ignore progress — scrolling is handled by Lenis/browser
-      // Only exit if user deliberately scrolls back far enough
-      if (showcaseScrolling && p < 0.9) {
-        phase9 = false
-        showcaseScrolling = false
-        phase9ExitTime = performance.now()
-        currentProgress = p
-      }
-      return
-    }
+    // In phase 9 (cascade), ignore scroll progress entirely — cascade is the final stage.
+    if (phase9) return
     const now = performance.now()
     const elapsed = now - phase9ExitTime
     // Block progress updates while wheel inertia is still active after phase 9 exit
@@ -104,26 +215,26 @@ export function useCardState() {
     currentProgress = p
   }
 
-  function onThumbClick() {
+  function onThumbClick(clickedIdx = -1) {
     if (currentProgress >= 0.96 && !phase9) {
       // Capture the project name that was hovered when the user clicked
-      if (p8HoveredIdx >= 0) {
-        const rotStep = (Math.PI * 2) / COUNT
-        const finalRot = -rotStep * 9
-        let cIdx = Math.round(((-Math.PI / 2 - finalRot) / (Math.PI * 2)) * COUNT) % COUNT
-        if (cIdx < 0) cIdx += COUNT
-        let slot = p8HoveredIdx - cIdx
-        if (slot > COUNT / 2) slot -= COUNT
-        if (slot < -COUNT / 2) slot += COUNT
-        selectedProjectName = projectNames[slot] || ''
+      const selectedIdx = p8HoveredIdx >= 0 ? p8HoveredIdx : clickedIdx
+      if (selectedIdx >= 0) {
+        const slot = getSpreadSlot(selectedIdx)
+        const label = projectLabelKeys[slot]
+        selectedProjectTitle = label ? t(label.title) : ''
+        selectedProjectSubtitle = label ? t(label.subtitle) : ''
+        setCascadeAlbum(label?.album)
       } else {
-        selectedProjectName = ''
+        selectedProjectTitle = ''
+        selectedProjectSubtitle = ''
+        setCascadeAlbum('level')
       }
-      phase9 = true
       dragOffsetX = 0
-      dragDiag = 0
+      dragDiag = getCascadeDragBounds(window.innerWidth, window.innerHeight, p9ActiveCount)
       dragMomentumX = 0
       dragMomentumDiag = 0
+      phase9 = true
     }
   }
 
@@ -139,65 +250,61 @@ export function useCardState() {
     const isSpread = currentProgress >= 0.92 && !phase9
     const glFade = glReady && isSpread ? Math.min(1, (currentProgress - 0.92) / 0.03) : 0
 
-    // Phase 9 transition
-    if (!phase9) cascadeCollapseTarget = 0
+    // Phase 9 transition (cascade is the final, static stage — no collapse animation)
     const p9Target = phase9 ? 1 : 0
     phase9Progress += (p9Target - phase9Progress) * (phase9 ? 0.04 : 0.08)
-    const collapseDir = cascadeCollapseTarget - cascadeCollapse
-    const collapseEase = collapseDir < 0
-      ? lerp(0.07, 0.04, Math.min(cascadeCollapse, 1))
-      : cascadeCollapse > 1
-        ? 0.07
-        : lerp(0.08, 0.04, cascadeCollapse)
-    cascadeCollapse += (cascadeCollapseTarget - cascadeCollapse) * collapseEase
 
     const mx = mouse.x * vw / 2
     const my = mouse.y * vh / 2
     const hoverActive = currentProgress <= 0.15
 
-    // Mobile drag: momentum + bounds (phase 8 & 9)
+    // Drag: phase 8 is mobile-only horizontal; cascade can drag along its
+    // diagonal on every viewport when the album overflows the fixed layout.
     const isMobile = vw < 1024
-    if (isMobile && currentProgress >= 0.96) {
+    if (phase9) {
       if (!isDragging) {
-        if (phase9) {
-          dragDiag += dragMomentumDiag
-          dragMomentumDiag *= 0.95
-          if (Math.abs(dragMomentumDiag) < 0.5) dragMomentumDiag = 0
-        } else {
-          dragOffsetX += dragMomentumX
-          dragMomentumX *= 0.95
-          if (Math.abs(dragMomentumX) < 0.5) dragMomentumX = 0
-        }
+        dragDiag += dragMomentumDiag
+        dragMomentumDiag *= 0.95
+        if (Math.abs(dragMomentumDiag) < 0.5) dragMomentumDiag = 0
       }
-      if (phase9) {
-        // Single scalar along cascade diagonal
-        const refW = 1440, refH = 900
-        const refDiag = Math.sqrt(refW * refW + refH * refH)
-        const desiredStep = (refDiag - 400) / (P9_COUNT - 1) * 0.9
-        const totalLen = (P9_COUNT - 1) * desiredStep
-        const maxDiag = Math.max(0, totalLen / 2 - Math.min(vw, vh) * 0.3)
-        // Rubber-band diagonal
-        if (!isDragging) {
-          if (dragDiag > maxDiag) dragDiag += (maxDiag - dragDiag) * 0.12
-          else if (dragDiag < -maxDiag) dragDiag += (-maxDiag - dragDiag) * 0.12
-        } else {
-          if (dragDiag > maxDiag) dragDiag = maxDiag + (dragDiag - maxDiag) * 0.35
-          else if (dragDiag < -maxDiag) dragDiag = -maxDiag + (dragDiag + maxDiag) * 0.35
-        }
+
+      const maxDiag = getCascadeDragBounds(vw, vh, p9ActiveCount)
+      if (!isDragging) {
+        if (dragDiag > maxDiag) dragDiag += (maxDiag - dragDiag) * 0.12
+        else if (dragDiag < -maxDiag) dragDiag += (-maxDiag - dragDiag) * 0.12
       } else {
-        // Phase 8: horizontal only
-        const spacing = 80
-        const cardScale = 3
-        const cardW = (vw < 640 ? 32 : 40) * cardScale
-        const maxDragX = TOTAL_CARDS * spacing / 2 + cardW - vw * 0.15
-        if (!isDragging) {
-          if (dragOffsetX > maxDragX) dragOffsetX += (maxDragX - dragOffsetX) * 0.12
-          else if (dragOffsetX < -maxDragX) dragOffsetX += (-maxDragX - dragOffsetX) * 0.12
-        } else {
-          if (dragOffsetX > maxDragX) dragOffsetX = maxDragX + (dragOffsetX - maxDragX) * 0.35
-          else if (dragOffsetX < -maxDragX) dragOffsetX = -maxDragX + (dragOffsetX + maxDragX) * 0.35
-        }
+        if (dragDiag > maxDiag) dragDiag = maxDiag + (dragDiag - maxDiag) * 0.35
+        else if (dragDiag < -maxDiag) dragDiag = -maxDiag + (dragDiag + maxDiag) * 0.35
       }
+
+      if (Math.abs(dragOffsetX) > 1) dragOffsetX *= 0.85
+      else dragOffsetX = 0
+      dragMomentumX = 0
+    } else if (isMobile && currentProgress >= 0.96) {
+      if (!isDragging) {
+        dragOffsetX += dragMomentumX
+        dragMomentumX *= 0.95
+        if (Math.abs(dragMomentumX) < 0.5) dragMomentumX = 0
+      }
+
+      // Phase 8: horizontal only. Bounds mirror spreadPhase's asymmetric
+      // layout so the first and last visible project cards can both reach
+      // the viewport center on mobile.
+      const spacing = 140
+      const centerCard = Math.floor(TOTAL_CARDS / 2)
+      const maxDragX = centerCard * spacing
+      const minDragX = -(TOTAL_CARDS - centerCard) * spacing
+      if (!isDragging) {
+        if (dragOffsetX > maxDragX) dragOffsetX += (maxDragX - dragOffsetX) * 0.12
+        else if (dragOffsetX < minDragX) dragOffsetX += (minDragX - dragOffsetX) * 0.12
+      } else {
+        if (dragOffsetX > maxDragX) dragOffsetX = maxDragX + (dragOffsetX - maxDragX) * 0.35
+        else if (dragOffsetX < minDragX) dragOffsetX = minDragX + (dragOffsetX - minDragX) * 0.35
+      }
+
+      if (Math.abs(dragDiag) > 1) dragDiag *= 0.85
+      else dragDiag = 0
+      dragMomentumDiag = 0
     } else {
       if (Math.abs(dragOffsetX) > 1) dragOffsetX *= 0.85
       else dragOffsetX = 0
@@ -207,26 +314,56 @@ export function useCardState() {
       dragMomentumDiag = 0
     }
 
-    // Allow cards to overflow on mobile during drag phases, and during showcase
-    const showcaseActive = cascadeCollapse > 1
+    // Allow cards to overflow on mobile during drag phases (phase 8 / 9).
     if (stickyEl) {
-      stickyEl.style.overflow = ((isMobile && currentProgress >= 0.92) || showcaseActive) ? 'visible' : 'hidden'
+      stickyEl.style.overflow = (isMobile && currentProgress >= 0.92) ? 'visible' : 'hidden'
     }
 
     const result = computeTargets(currentProgress, {
       vh, vw, tgt, tgtText, tgtArc, tgtBottom, cur, els, mouse,
-      smoothMouse, p9Tgt, phase9, phase9Progress, dragOffsetX, dragDiag, cascadeDirX, cascadeDirY, cascadeCollapse,
+      smoothMouse, p9Tgt, phase9, phase9Progress, p9ActiveCount, dragOffsetX, dragDiag, cascadeDirX, cascadeDirY,
     })
     p8HoveredIdx = result.p8HoveredIdx
+
+    // Snap: copy fresh targets directly into `cur` so the lerp loop below
+    // has zero distance to travel — no visible "catch-up" animation.
+    if (pendingSnap) {
+      for (let i = 0; i < COUNT; i++) {
+        const c = cur[i]; const t = tgt[i]
+        c.x = t.x; c.y = t.y; c.z = t.z
+        c.r = t.r; c.rx = t.rx; c.ry = t.ry
+        c.s = t.s; c.wx = t.wx; c.o = t.o
+        hoverSpin[i] = 0; hoverLift[i] = 0
+        p8Hover[i] = 0; p8Dim[i] = 0
+      }
+      for (let i = 0; i < P9_COUNT; i++) {
+        const c = p9Cur[i]; const t = p9Tgt[i]
+        c.x = t.x; c.y = t.y; c.z = t.z
+        c.r = t.r; c.rx = t.rx; c.ry = t.ry
+        c.s = t.s; c.o = t.o
+        p9Hover[i] = 0
+      }
+      curText.o = tgtText.o; curText.y = tgtText.y
+      curArc.o = tgtArc.o; curArc.y = tgtArc.y
+      curBottom.o = tgtBottom.o; curBottom.y = tgtBottom.y
+      pendingSnap = false
+    }
 
     // Interpolate main cards
     for (let i = 0; i < COUNT; i++) {
       const c = cur[i]
       const t = tgt[i]
 
+      // Fast path: fully hidden card — snap position, skip all math & DOM
       if (c.o < 0.01 && t.o < 0.01) {
         c.x = t.x; c.y = t.y; c.z = t.z
         c.r = t.r; c.rx = t.rx; c.ry = t.ry; c.s = t.s; c.wx = t.wx
+        c.o = 0
+        hoverSpin[i] = 0; hoverLift[i] = 0
+        p8Hover[i] = 0; p8Dim[i] = 0
+        els[i].style.opacity = '0'
+        els[i].style.pointerEvents = 'none'
+        continue
       }
 
       c.x += (t.x - c.x) * EASE
@@ -264,18 +401,22 @@ export function useCardState() {
       p8Hover[i] += (p8LiftTarget - p8Hover[i]) * HOVER_EASE
       p8Dim[i] += (p8DimTarget - p8Dim[i]) * HOVER_EASE
 
-      els[i].style.transform = `translate3d(${c.x}px, ${c.y + p8Hover[i] * -40}px, ${c.z + hz}px) perspective(1500px) rotateX(${c.rx}deg) rotateY(${c.ry}deg) rotateZ(${c.r}deg) rotateY(${hoverSpin[i]}deg) scale(${c.s}) scaleX(${c.wx})`
       if (t.o < 0.01) c.o = 0
       const baseO = c.o > 0.95 ? 1 : Math.max(0, c.o)
-      const finalO = baseO * (1 - p8Dim[i])
-      els[i].style.opacity = String(finalO * (1 - glFade))
+      const finalO = baseO * (1 - p8Dim[i]) * (1 - glFade)
+
+      const ds = c.s / 3
+      els[i].style.transform = `translate3d(${c.x}px, ${c.y + p8Hover[i] * -40}px, ${c.z + hz}px) perspective(1500px) rotateX(${c.rx}deg) rotateY(${c.ry}deg) rotateZ(${c.r}deg) rotateY(${hoverSpin[i]}deg) scale(${ds}) scaleX(${c.wx})`
+      els[i].style.opacity = String(finalO)
+      const interactivePhase = !phase9 && (currentProgress <= 0.55 || currentProgress >= 0.96)
+      els[i].style.pointerEvents = interactivePhase && t.o > 0.3 ? 'auto' : 'none'
     }
 
     // ── WebGL glass cards ──
     if (glFade > 0.01) {
       glLayer.resize()
-      const cardW = vw < 640 ? 32 : vw < 1024 ? 40 : 50
-      const cardH = vw < 640 ? 46 : vw < 1024 ? 58 : 72
+      const cardW = usesSmallMobileCards(vw, vh) ? 32 : vw < 1024 ? 40 : 50
+      const cardH = usesSmallMobileCards(vw, vh) ? 46 : vw < 1024 ? 58 : 72
       const glCards = []
       for (let i = 0; i < COUNT; i++) {
         if (tgt[i].o < 0.1) continue
@@ -295,12 +436,26 @@ export function useCardState() {
       glLayer.clear()
     }
 
-    // Phase 9 elements — hover detection (disabled during showcase collapse)
+    // Phase 9 elements — skip entirely when not transitioning
+    if (!phase9 && phase9Progress < 0.01) {
+      // Fast path: ensure no residual opacity is left on cards. p9Cur may still
+      // hold small (e.g. 0.04) leftover values from the fade-out tail because
+      // the lerp never reaches exactly zero. Snap them to 0 explicitly so we
+      // don't leave ghosted cards on the spread.
+      for (let i = 0; i < P9_COUNT && i < p9ThumbEls.length; i++) {
+        if (p9Cur[i].o !== 0) {
+          p9Cur[i].o = 0
+          p9ThumbEls[i].style.opacity = '0'
+          p9ThumbEls[i].style.pointerEvents = 'none'
+        }
+      }
+    } else {
+    // Phase 9 elements — hover detection
     let p9HoveredIdx = -1
-    if (phase9 && phase9Progress > 0.5 && cascadeCollapse < 0.3) {
+    if (phase9 && phase9Progress > 0.5) {
       let bestIdx = -1
       let bestDist = Infinity
-      for (let i = 0; i < P9_COUNT && i < p9ThumbEls.length; i++) {
+      for (let i = 0; i < p9ActiveCount && i < p9ThumbEls.length; i++) {
         const dx = p9Cur[i].x - mx
         const dy = p9Cur[i].y - my
         const d = dx * dx + dy * dy
@@ -312,6 +467,17 @@ export function useCardState() {
     for (let i = 0; i < P9_COUNT && i < p9ThumbEls.length; i++) {
       const c = p9Cur[i]
       const t = p9Tgt[i]
+
+      // Fast path: fully hidden p9 card
+      if (c.o < 0.01 && t.o < 0.01) {
+        c.x = t.x; c.y = t.y; c.z = t.z
+        c.rx = t.rx; c.ry = t.ry; c.r = t.r; c.s = t.s
+        c.o = 0; p9Hover[i] = 0
+        p9ThumbEls[i].style.opacity = '0'
+        p9ThumbEls[i].style.pointerEvents = 'none'
+        continue
+      }
+
       if (t.o < 0.01) c.o *= 0.9
       c.x += (t.x - c.x) * EASE
       c.y += (t.y - c.y) * EASE
@@ -326,12 +492,13 @@ export function useCardState() {
       p9Hover[i] += (hoverTarget - p9Hover[i]) * HOVER_EASE
       const hx = p9Hover[i] * 40
 
-      p9ThumbEls[i].style.transform = `translate3d(${c.x}px, ${c.y}px, ${c.z}px) rotateX(${c.rx}deg) rotateY(${c.ry}deg) rotateZ(${c.r}deg) translateX(${hx}px) scale(${c.s})`
+      p9ThumbEls[i].style.transform = `translate3d(${c.x}px, ${c.y}px, ${c.z}px) rotateX(${c.rx}deg) rotateY(${c.ry}deg) rotateZ(${c.r}deg) translateX(${hx}px) scale(${c.s / 3})`
       const p9o = Math.max(0, c.o)
       p9ThumbEls[i].style.opacity = String(p9o)
-      p9ThumbEls[i].style.zIndex = String(P9_COUNT - i)
+      p9ThumbEls[i].style.zIndex = String(p9ActiveCount - i)
       p9ThumbEls[i].style.pointerEvents = p9o > 0.3 ? 'auto' : 'none'
     }
+    } // end p9 block
 
     // Text elements
     curText.o = tgtText.o >= 1 ? 1 : curText.o + (tgtText.o - curText.o) * EASE
@@ -375,34 +542,37 @@ export function useCardState() {
         cachedSubEl = bottomEl.querySelector('.bottom-sub')
       }
 
-      // Smooth crossfade between project title / philosophy text / sub line
-      // based on the cascade→showcase progress.
-      const showcaseT = Math.min(1, Math.max(0, cascadeCollapse - 1))
-      // Ease (smoothstep) so the swap feels gentle
-      const sT = showcaseT * showcaseT * (3 - 2 * showcaseT)
+      const hoveredSlot = p8HoveredIdx >= 0 ? getSpreadSlot(p8HoveredIdx) : -1
+      const hoveredProjectLabel = hoveredSlot >= 0 ? projectLabelKeys[hoveredSlot] : null
+      const hoveredProjectTitle = hoveredProjectLabel ? t(hoveredProjectLabel.title) : ''
+      const hoveredProjectSubtitle = hoveredProjectLabel ? t(hoveredProjectLabel.subtitle) : ''
 
       if (cachedTitleEl) {
-        if (phase9 && selectedProjectName) {
-          cachedTitleEl.textContent = selectedProjectName
+        if (phase9 && selectedProjectTitle) {
+          cachedTitleEl.textContent = selectedProjectTitle
         } else if (p8HoveredIdx >= 0) {
-          const rotStep = (Math.PI * 2) / COUNT
-          const finalRot = -rotStep * 9
-          let cIdx = Math.round(((-Math.PI / 2 - finalRot) / (Math.PI * 2)) * COUNT) % COUNT
-          if (cIdx < 0) cIdx += COUNT
-          let slot = p8HoveredIdx - cIdx
-          if (slot > COUNT / 2) slot -= COUNT
-          if (slot < -COUNT / 2) slot += COUNT
-          cachedTitleEl.textContent = projectNames[slot] || 'Недавние проекты'
+          cachedTitleEl.textContent = hoveredProjectTitle || t('bottom.recent')
         } else {
-          cachedTitleEl.textContent = 'Недавние проекты'
+          cachedTitleEl.textContent = t('bottom.recent')
         }
-        cachedTitleEl.style.opacity = String(1 - sT)
+        cachedTitleEl.style.opacity = '1'
       }
       if (cachedPhilosophyEl) {
-        cachedPhilosophyEl.style.opacity = String(sT)
+        cachedPhilosophyEl.style.opacity = '0'
       }
       if (cachedSubEl) {
-        cachedSubEl.style.opacity = String(1 - sT)
+        let isProjectSubtitle = false
+        if (phase9 && selectedProjectSubtitle) {
+          cachedSubEl.textContent = selectedProjectSubtitle
+          isProjectSubtitle = true
+        } else if (p8HoveredIdx >= 0) {
+          cachedSubEl.textContent = hoveredProjectSubtitle || t('bottom.choose')
+          isProjectSubtitle = Boolean(hoveredProjectSubtitle)
+        } else {
+          cachedSubEl.textContent = t('bottom.choose')
+        }
+        cachedSubEl.classList.toggle('bottom-sub--project', isProjectSubtitle)
+        cachedSubEl.style.opacity = '1'
       }
     }
   }
@@ -438,14 +608,11 @@ export function useCardState() {
 
   function scrollCascade(deltaY) {
     if (!phase9) return
-    // Exit phase9 when fully uncollapsed and still scrolling up
-    if (deltaY < 0 && cascadeCollapseTarget <= 0 && cascadeCollapse < 0.001) {
-      phase9 = false
-      phase9ExitTime = performance.now()
-      return
+    const maxDiag = getCascadeDragBounds(window.innerWidth, window.innerHeight, p9ActiveCount)
+    if (maxDiag > 0) {
+      dragDiag -= deltaY * 0.65
+      dragMomentumDiag = -deltaY * 0.08
     }
-    const speed = 0.001
-    cascadeCollapseTarget = Math.max(0, Math.min(2, cascadeCollapseTarget + deltaY * speed))
   }
 
   function isInPhase9() {
@@ -464,40 +631,39 @@ export function useCardState() {
     return false
   }
 
-  function getShowcaseProgress() {
-    return Math.max(0, cascadeCollapse - 1)
-  }
-
-  function isShowcaseOpen() {
-    return cascadeCollapse >= 1.85
-  }
-
-  let showcaseScrolling = false
-
-  function enterShowcaseScroll() {
-    showcaseScrolling = true
-  }
-
-  function isShowcaseScrolling() {
-    return showcaseScrolling
-  }
-
-  function exitShowcaseScroll() {
-    showcaseScrolling = false
-  }
-
   function forceExitPhase9() {
     phase9 = false
-    showcaseScrolling = false
     phase9ExitTime = performance.now()
     currentProgress = 1
-    cascadeCollapse = 0
-    cascadeCollapseTarget = 0
+  }
+
+  function resetToCircle() {
+    phase9 = false
+    phase9Progress = 0
+    phase9ExitTime = 0
+    lastWheelTime = 0
+    currentProgress = 0
+    p8HoveredIdx = -1
+    dragOffsetX = 0
+    dragDiag = 0
+    dragMomentumX = 0
+    dragMomentumDiag = 0
+    isDragging = false
+    pendingSnap = true
+    for (let i = 0; i < P9_COUNT; i++) {
+      p9Cur[i].o = 0
+      p9Tgt[i].o = 0
+      p9Hover[i] = 0
+    }
   }
 
   function getProgress() {
     return currentProgress
   }
 
-  return { cur, thumbnails, p9Thumbnails, setProgress, onThumbClick, scrollCascade, tick, startDrag, moveDrag, endDrag, isInPhase9, forceExitPhase9, shouldBlockScroll, recordWheel, getShowcaseProgress, isShowcaseOpen, isShowcaseScrolling, enterShowcaseScroll, exitShowcaseScroll, getProgress }
+  function snap() {
+    pendingSnap = true
+  }
+
+  return { cur, thumbnails, p9Thumbnails, getP9LightboxPhotos, setProgress, onThumbClick, scrollCascade, tick, startDrag, moveDrag, endDrag, isInPhase9, forceExitPhase9, resetToCircle, shouldBlockScroll, recordWheel, getProgress, snap }
 }

@@ -1,10 +1,11 @@
-import { COUNT, TOTAL_CARDS, lerp } from '../constants'
+import { COUNT, TOTAL_CARDS, isCompactLandscape, lerp } from '../constants'
 
 export function compute(ctx) {
-  const { progress, tgt, tgtText, tgtBottom, cur, centerIdx, halfCount, els, mouse, phase9 } = ctx
+  const { progress, vh, vw, tgt, tgtText, tgtBottom, cur, centerIdx, halfCount, els, mouse, phase9 } = ctx
 
   const isPhase7 = progress <= 0.96
-  const spreadProgress = isPhase7 ? (progress - 0.92) / 0.04 : 1
+  const rawSpread = isPhase7 ? (progress - 0.92) / 0.04 : 1
+  const spreadProgress = rawSpread * rawSpread * (3 - 2 * rawSpread) // smoothstep
   const spacing = lerp(14, 140, spreadProgress)
 
   const tiltRX7 = lerp(-24, -20, spreadProgress)
@@ -12,17 +13,21 @@ export function compute(ctx) {
   const tiltR7 = lerp(3, 0, spreadProgress)
   const tiltZ7 = lerp(140, 0, spreadProgress)
   const wx7 = lerp(1, 1.4, spreadProgress)
-  const scale7 = lerp(2.6, 5, spreadProgress)
-  const yShift = lerp(0, 0, spreadProgress)
+  const compactLandscape = isCompactLandscape(vw, vh)
+  const scale7 = lerp(compactLandscape ? 2 : 2.6, compactLandscape ? 3.7 : 5, spreadProgress)
+  const isMobile = vw < 1024
+  const yShift = compactLandscape ? lerp(0, 48, spreadProgress) : isMobile ? lerp(0, 90, spreadProgress) : 0
   const centerCard = Math.floor(TOTAL_CARDS / 2)
   const groupOffset = -centerCard * spacing
 
-  // Phase 8 hover: find nearest visible card to cursor
+  // Phase 8 hover: desktop follows cursor; mobile follows the centered card.
   const p8Active = !isPhase7 && !phase9
   let p8HoveredIdx = -1
-  if (p8Active) {
-    const mx = mouse.x * window.innerWidth / 2
-    const my = mouse.y * window.innerHeight / 2
+  let mobileBestIdx = -1
+  let mobileBestDist = Infinity
+  if (p8Active && !isMobile) {
+    const mx = mouse.x * vw / 2
+    const my = mouse.y * vh / 2
     let bestIdx = -1
     let bestDist = Infinity
     for (let i = 0; i < COUNT; i++) {
@@ -54,11 +59,22 @@ export function compute(ctx) {
       tgt[i].rx = tiltRX7; tgt[i].ry = tiltRY7; tgt[i].r = tiltR7; tgt[i].wx = wx7
       tgt[i].o = 1
       els[i].style.zIndex = String(TOTAL_CARDS + 1 - rawDist)
+      if (p8Active && isMobile) {
+        const d = Math.abs(xPos)
+        if (d < mobileBestDist) {
+          mobileBestDist = d
+          mobileBestIdx = i
+        }
+      }
     } else {
       tgt[i].x = 0; tgt[i].y = 0; tgt[i].z = 0
       tgt[i].rx = 0; tgt[i].ry = 0; tgt[i].r = 0; tgt[i].wx = 1; tgt[i].o = 0
       els[i].style.zIndex = '0'
     }
+  }
+
+  if (p8Active && isMobile) {
+    p8HoveredIdx = mobileBestIdx
   }
 
   tgtText.o = 0

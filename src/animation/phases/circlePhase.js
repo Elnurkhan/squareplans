@@ -1,11 +1,15 @@
-import { COUNT, getCircleR, lerp } from '../constants'
+import { COUNT, getCircleR, getWideArcBoost, isCompactLandscape, lerp } from '../constants'
 
 export function compute(ctx) {
   const { progress, vh, smoothMouse, tgt, tgtText, tgtArc, radiusEnd, finalRotOffset } = ctx
 
-  const vw = window.innerWidth
+  const vw = ctx.vw ?? window.innerWidth
   const circleR = getCircleR(vw, vh)
+  const wideArcBoost = getWideArcBoost(vw)
   const isMobile = vw < 1024
+  const compactLandscape = isCompactLandscape(vw, vh)
+  const mobileMidScale = compactLandscape ? 1.35 : 1.8
+  const mobileArcScale = compactLandscape ? 1.75 : 2.6
   const endY = radiusEnd
   const midY = endY * 0.4
 
@@ -21,14 +25,18 @@ export function compute(ctx) {
     const p = (progress - 0.15) / 0.15
     centerYOffset = lerp(midY, endY, p)
     radius = lerp(circleR, radiusEnd, p)
-    scale = lerp(1, isMobile ? 1.2 : 2.5, p)
+    scale = lerp(1, isMobile ? mobileMidScale : 2.5, p)
   } else {
     const p = (progress - 0.3) / 0.25
     centerYOffset = endY
     radius = radiusEnd
-    scale = lerp(isMobile ? 1.8 : 2.5, isMobile ? 2.1 : 3, Math.min(1, p))
+    scale = lerp(isMobile ? mobileMidScale : 2.5, isMobile ? mobileArcScale : 3, Math.min(1, p))
     rotationOffset = lerp(0, finalRotOffset, p)
   }
+
+  const boostProgress = Math.max(0, Math.min(1, (progress - 0.12) / 0.13))
+  const boostEase = boostProgress * boostProgress * (3 - 2 * boostProgress)
+  scale *= lerp(1, wideArcBoost, boostEase)
 
   const mouseFade = Math.max(0, 1 - progress / 0.15)
   const mouseRot = smoothMouse.x * 0.12 * mouseFade

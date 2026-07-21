@@ -1,5 +1,10 @@
 <template>
-  <IntroAnimation />
+  <SiteHeader />
+  <div class="main-page" ref="mainPageEl">
+    <IntroAnimation />
+  </div>
+  <AboutPage />
+  <ContactsPage />
   <a href="#hero" class="skip-link">Skip to content</a>
   <DOMLayer>
   </DOMLayer>
@@ -14,7 +19,11 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 import IntroAnimation from '@/components/IntroAnimation.vue'
+import AboutPage from '@/components/AboutPage.vue'
+import ContactsPage from '@/components/ContactsPage.vue'
+import SiteHeader from '@/components/SiteHeader.vue'
 import DOMLayer from '@/components/DOMLayer.vue'
+import { usePageNavigation } from '@/composables/usePageNavigation'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -22,10 +31,24 @@ let lenis
 let lenisTicker
 const lenisRef = ref(null)
 const scrollLineEl = ref(null)
+const mainPageEl = ref(null)
+const introComplete = ref(false)
 provide('lenis', lenisRef)
+provide('introComplete', introComplete)
+
+const { setLenisGetter, registerPage } = usePageNavigation()
+setLenisGetter(() => lenisRef.value)
 
 onMounted(() => {
-  lenis = new Lenis({ autoRaf: false })
+  registerPage(1, mainPageEl.value)
+  const isMobile = window.innerWidth < 1024
+  lenis = new Lenis({
+    autoRaf: false,
+    wheelMultiplier: 1.8,
+    touchMultiplier: isMobile ? 7 : 5,
+    lerp: isMobile ? 0.15 : 0.1,
+    overscroll: false,
+  })
   lenis.on('scroll', (e) => {
     ScrollTrigger.update(e)
     if (scrollLineEl.value) {
@@ -39,6 +62,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  registerPage(1, null)
   if (lenisTicker) gsap.ticker.remove(lenisTicker)
   lenisTicker = null
   lenis?.destroy()
@@ -56,19 +80,32 @@ onUnmounted(() => {
 
 html {
   scrollbar-width: none;
+  background: #fafafa;
+  overscroll-behavior: none;
 }
 html::-webkit-scrollbar {
   display: none;
 }
 
 body {
-  background: #0a0a0f;
-  color: #e0e0e0;
+  background: #fafafa;
+  color: #14131a;
   font-family: 'Petrov Sans Trial', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
+  overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+#app,
+.main-page {
+  background: #fafafa;
+}
+
+/* Main-page wrapper. Transform applied via GSAP from usePageNavigation.
+   No CSS transition — GSAP handles the timing so it stays in sync with
+   overlay animations. After returning to main, GSAP `clearProps`
+   strips the transform and ScrollTrigger.refresh() rebuilds the pin. */
 
 .scroll-line {
   position: fixed;
@@ -76,10 +113,11 @@ body {
   right: 0;
   width: 2px;
   height: 100vh;
+  height: 100dvh;
   background: #1a1a1a;
   transform-origin: top center;
   transform: scaleY(0);
-  z-index: 200;
+  z-index: 250;
   pointer-events: none;
 }
 

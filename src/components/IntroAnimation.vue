@@ -1,13 +1,4 @@
 <template>
-  <header class="intro-header" ref="headerEl">
-    <nav class="intro-nav">
-      <a href="#" :class="{ active: activeNav === 0 }">Интро</a>
-      <a href="#" :class="{ active: activeNav === 1 }">Проекты</a>
-      <a href="#" :class="{ active: activeNav === 2 }">О нас</a>
-      <a href="#" :class="{ active: activeNav === 3 }">Контакты</a>
-    </nav>
-  </header>
-
   <div class="intro" ref="introEl">
     <div class="intro-sticky" ref="stickyEl">
       <div class="intro-stage" ref="stageEl">
@@ -16,50 +7,47 @@
           :key="i"
           class="thumb"
           ref="thumbEls"
-          @click="handleThumbClick"
+          @click="handleThumbClick(i)"
         >
           <img :src="thumb.src" alt="" />
           <div class="thumb-highlight" />
         </div>
         <div class="p9-wrapper">
           <div
-            v-for="(thumb, i) in p9Thumbnails"
+            v-for="(_, i) in p9Thumbnails"
             :key="'p9-' + i"
             class="thumb p9-thumb"
             ref="p9ThumbEls"
             @click="handleP9Click(i)"
           >
-            <img :src="thumb.src" alt="" />
+            <img alt="" />
             <div class="thumb-highlight" />
           </div>
         </div>
       </div>
 
       <div class="intro-center" ref="centerEl">
-        <img class="intro-logo" src="/logo.svg" alt="SQUAREPLANS" />
-        <span class="intro-sub">Листайте, чтобы узнать больше</span>
+        <span class="intro-sub">{{ t('intro.scroll') }}</span>
       </div>
 
       <div class="intro-arc-text" ref="arcTextEl">
         <p>
-          <span v-for="(word, i) in arcWords" :key="i" class="arc-word" ref="arcWordEls">{{ word }}</span>
+          <template v-for="(line, li) in arcLines" :key="'l'+li">
+            <br v-if="li > 0" />
+            <span v-for="(word, wi) in line" :key="li+'-'+wi" class="arc-word" ref="arcWordEls">{{ word }}</span>
+          </template>
         </p>
       </div>
 
       <div class="intro-bottom" ref="bottomEl">
         <div class="bottom-title-stack">
-          <div class="bottom-title bottom-title-project">Недавние проекты</div>
-          <div class="bottom-title bottom-title-philosophy">Создаём не просто дизайн, а пространства и образы, которые становятся<br> частью жизни наших клиентов</div>
+          <div class="bottom-title bottom-title-project">{{ t('bottom.recent') }}</div>
+          <div class="bottom-title bottom-title-philosophy" v-html="t('bottom.philosophy')"></div>
         </div>
-        <div class="bottom-sub">Выберите один</div>
+        <div class="bottom-sub">{{ t('bottom.choose') }}</div>
       </div>
 
     </div>
-  </div>
-
-  <div class="after-intro" ref="afterIntroEl" data-lenis-prevent>
-    <div class="showcase-spacer"></div>
-    <ProjectPage />
   </div>
 
   <PhotoLightbox
@@ -68,22 +56,36 @@
     :start-index="lightboxStartIdx"
     @close="lightboxOpen = false"
   />
+
+  <button
+    v-show="cascadeBackVisible && currentPage === 1"
+    class="cascade-back"
+    @click.stop="handleCascadeBack"
+    aria-label="Вернуться к проектам"
+  >
+    <svg class="cascade-back-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <polyline points="15,5 8,12 15,19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Обратно к проектам
+  </button>
 </template>
 
 <script setup>
-import { ref, inject, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, inject, watch, onMounted, onBeforeUnmount } from 'vue'
 import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useMouseTracking } from '@/composables/useMouseTracking'
 import { useIntroTimeline } from '@/composables/useIntroTimeline'
 import { useCardState } from '@/composables/useCardState'
+import { useI18n } from '@/composables/useI18n'
+import { usePageNavigation } from '@/composables/usePageNavigation'
 import PhotoLightbox from '@/components/PhotoLightbox.vue'
-import ProjectPage from '@/components/ProjectPage.vue'
 import { GlassCardLayer } from '@/webgl/GlassCardLayer'
 
 const lenisRef = inject('lenis')
+const introComplete = inject('introComplete')
 
 const introEl = ref(null)
-const headerEl = ref(null)
 const stickyEl = ref(null)
 const stageEl = ref(null)
 const thumbEls = ref([])
@@ -92,18 +94,28 @@ const centerEl = ref(null)
 const arcTextEl = ref(null)
 const arcWordEls = ref([])
 const bottomEl = ref(null)
-const showcaseInfoEl = ref(null)
-const afterIntroEl = ref(null)
+const { t } = useI18n()
 
-const arcWords = [
-  'ИНДИВИДУАЛЬНЫЕ', 'ДИЗАЙН-ПРОЕКТЫ', 'ДЛЯ', 'ЖИЛЫХ', 'И',
-  'КОММЕРЧЕСКИХ', 'ПОМЕЩЕНИЙ', 'ПОД', 'КЛЮЧ.', 'АВТОРСКИЙ', 'НАДЗОР',
-]
+const arcLines = computed(() => [
+  t('arc.line1'),
+  t('arc.line2'),
+  t('arc.line3'),
+])
 
 const mouseTracking = useMouseTracking()
 const timeline = useIntroTimeline()
 const cards = useCardState()
 const glCardLayer = new GlassCardLayer()
+const { currentPage, isAnimating, navigate } = usePageNavigation()
+
+// When returning to the main page from an overlay, snap card cur→tgt on the
+// next tick so we don't see a brief lerp catch-up (e.g. mobile address bar
+// collapse changes viewport height while the overlay is up, which shifts
+// targets a bit).
+watch(currentPage, (n, prev) => {
+  if (n === 1 && prev !== 1) cards.snap()
+  syncCascadeChrome()
+})
 
 const { thumbnails, p9Thumbnails } = cards
 
@@ -112,28 +124,248 @@ let touchStartX = 0
 let touchStartY = 0
 let touchLocked = null
 let dragPreventsClick = false
-let touchLastY = 0
-
-const activeNav = ref(0)
-
-// Smooth scroll state for showcase overlay
-let showcaseScrollTarget = 0
-let showcaseScrollCurrent = 0
+let mouseDragging = false
+let mouseStartX = 0
+let mouseStartY = 0
 
 const lightboxOpen = ref(false)
 const lightboxStartIdx = ref(0)
+const cascadeBackVisible = ref(false)
+let p9ImagesLoaded = false
 
-const p9LightboxPhotos = cards.p9Thumbnails.map(t => ({
-  src: t.src.replace('/800/1120', '/1600/2240'),
-}))
+const p9LightboxPhotos = ref(cards.getP9LightboxPhotos())
+const SPREAD_JUMP_PROGRESS = 0.98
+const SPREAD_JUMP_DESKTOP_DURATION = 2.2
+const SPREAD_JUMP_MOBILE_DURATION = 3.2
+const SPREAD_JUMP_EASE = (t) => t * t * t * (t * (t * 6 - 15) + 10)
+const GO_CIRCLE_EVENT = 'intro:go-circle'
+const CASCADE_STATE_EVENT = 'intro:cascade-state'
+const GO_CIRCLE_DESKTOP_DURATION = 2.6
+const GO_CIRCLE_MOBILE_DURATION = 3.2
+let spreadJumpTween = null
+let spreadJumpReset = null
+let spreadJumping = false
+let circleScrollTween = null
+let circleScrollReset = null
+let circleScrolling = false
+let pendingCircleReset = false
+let cascadeChromeActive = false
 
-function handleThumbClick() {
+watch(isAnimating, (animating) => {
+  if (!animating) resolvePendingCircleReset()
+})
+
+function getSpreadJumpDuration() {
+  return window.innerWidth < 1024 ? SPREAD_JUMP_MOBILE_DURATION : SPREAD_JUMP_DESKTOP_DURATION
+}
+
+function finishSpreadJump() {
+  spreadJumping = false
+  spreadJumpTween?.kill()
+  spreadJumpTween = null
+  spreadJumpReset?.kill()
+  spreadJumpReset = null
+  cards.setProgress(SPREAD_JUMP_PROGRESS)
+  cards.snap()
+  ScrollTrigger.update()
+}
+
+function jumpIntroToSpreadPoint() {
+  if (spreadJumping) return
+  timeline.finishIntro()
+  ScrollTrigger.refresh()
+
+  const y = timeline.getScrollPoint(SPREAD_JUMP_PROGRESS)
+  if (!Number.isFinite(y) || y <= 0) return
+
+  const l = lenisRef.value
+  const duration = getSpreadJumpDuration()
+  l?.resize()
+  spreadJumping = true
+  spreadJumpTween?.kill()
+  spreadJumpReset?.kill()
+
+  if (l?.scrollTo) {
+    l.scrollTo(y, {
+      duration,
+      easing: SPREAD_JUMP_EASE,
+      force: true,
+      lock: true,
+      onComplete: finishSpreadJump,
+    })
+    spreadJumpReset = gsap.delayedCall(duration + 0.25, finishSpreadJump)
+    return
+  }
+
+  const scrollState = { y: window.scrollY }
+  spreadJumpTween = gsap.to(scrollState, {
+    y,
+    duration,
+    ease: 'sine.inOut',
+    onUpdate: () => {
+      window.scrollTo(0, scrollState.y)
+      ScrollTrigger.update()
+    },
+    onComplete: finishSpreadJump,
+  })
+}
+
+function cancelSpreadJump() {
+  if (!spreadJumping) return
+  spreadJumping = false
+  spreadJumpTween?.kill()
+  spreadJumpTween = null
+  spreadJumpReset?.kill()
+  spreadJumpReset = null
+}
+
+function getCircleScrollDuration() {
+  return window.innerWidth < 1024 ? GO_CIRCLE_MOBILE_DURATION : GO_CIRCLE_DESKTOP_DURATION
+}
+
+function finishCircleScroll() {
+  circleScrolling = false
+  circleScrollTween?.kill()
+  circleScrollTween = null
+  circleScrollReset?.kill()
+  circleScrollReset = null
+  cards.resetToCircle()
+  ScrollTrigger.update()
+}
+
+function cancelCircleScroll() {
+  if (!circleScrolling) return
+  circleScrolling = false
+  circleScrollTween?.kill()
+  circleScrollTween = null
+  circleScrollReset?.kill()
+  circleScrollReset = null
+}
+
+function syncCascadeChrome() {
+  const active = currentPage.value === 1 && cards.isInPhase9()
+  if (active === cascadeChromeActive) return
+  cascadeChromeActive = active
+  window.dispatchEvent(new CustomEvent(CASCADE_STATE_EVENT, { detail: { active } }))
+}
+
+function snapSpreadJumpToEnd() {
+  if (!spreadJumping) return
+  const y = timeline.getScrollPoint(SPREAD_JUMP_PROGRESS)
+  const l = lenisRef.value
+  if (Number.isFinite(y) && y > 0) {
+    window.scrollTo(0, y)
+    l?.scrollTo?.(y, { immediate: true, force: true })
+    l?.raf(performance.now())
+    cards.setProgress(SPREAD_JUMP_PROGRESS)
+    cards.snap()
+    ScrollTrigger.update()
+  }
+  cancelSpreadJump()
+}
+
+function goToCirclePhase() {
+  pendingCircleReset = false
+  cancelSpreadJump()
+  cancelCircleScroll()
+  timeline.finishIntro()
+  ScrollTrigger.refresh()
+
+  const y = timeline.getScrollPoint(0)
+  if (!Number.isFinite(y)) {
+    cards.resetToCircle()
+    return
+  }
+
+  const l = lenisRef.value
+  const duration = getCircleScrollDuration()
+  l?.start()
+  l?.resize()
+
+  if (cards.isInPhase9()) {
+    cards.forceExitPhase9()
+    syncCascadeChrome()
+  }
+
+  cascadeBackVisible.value = false
+  dragPreventsClick = false
+  touchLocked = null
+  circleScrolling = true
+
+  if (l?.scrollTo) {
+    l.scrollTo(y, {
+      duration,
+      easing: SPREAD_JUMP_EASE,
+      force: true,
+      lock: true,
+      onComplete: finishCircleScroll,
+    })
+    circleScrollReset = gsap.delayedCall(duration + 0.25, finishCircleScroll)
+    return
+  }
+
+  const scrollState = { y: window.scrollY }
+  circleScrollTween = gsap.to(scrollState, {
+    y,
+    duration,
+    ease: 'sine.inOut',
+    onUpdate: () => {
+      window.scrollTo(0, scrollState.y)
+      ScrollTrigger.update()
+    },
+    onComplete: finishCircleScroll,
+  })
+}
+
+function requestCirclePhase() {
+  pendingCircleReset = true
+  resolvePendingCircleReset()
+}
+
+function resolvePendingCircleReset() {
+  if (!pendingCircleReset || isAnimating.value) return
+  if (currentPage.value !== 1) {
+    navigate(1)
+    return
+  }
+  goToCirclePhase()
+}
+
+function syncP9Images() {
+  p9LightboxPhotos.value = cards.getP9LightboxPhotos()
+  const els = p9ThumbEls.value
+  for (let i = 0; i < p9Thumbnails.length && i < els.length; i++) {
+    const img = els[i].querySelector('img')
+    if (!img) continue
+    if (p9Thumbnails[i].src) img.src = p9Thumbnails[i].src
+    else img.removeAttribute('src')
+  }
+  p9ImagesLoaded = true
+}
+
+function handleThumbClick(i) {
   if (dragPreventsClick) {
     dragPreventsClick = false
     return
   }
-  cards.onThumbClick()
+
+  if (!introComplete.value) return
+  if (spreadJumping) {
+    snapSpreadJumpToEnd()
+    return
+  }
+
+  const jumpToSpread = cards.getProgress() <= 0.55 && !cards.isInPhase9()
+  if (jumpToSpread) {
+    jumpIntroToSpreadPoint()
+    return
+  }
+
+  cards.onThumbClick(i)
   if (cards.isInPhase9()) {
+    syncP9Images()
+    cascadeBackVisible.value = true
+    syncCascadeChrome()
     lenisRef.value?.stop()
   }
 }
@@ -148,63 +380,25 @@ function handleP9Click(i) {
 }
 
 function onTouchStart(e) {
+  if (currentPage.value !== 1) return
   if (window.innerWidth >= 1024) return
   const t = e.touches[0]
   touchStartX = t.clientX
   touchStartY = t.clientY
-  touchLastY = t.clientY
   touchLocked = null
 
-  // Don't start card drag if we're in showcase scroll mode
-  if (!cards.isShowcaseScrolling()) {
+  if (cards.isInPhase9() || cards.getProgress() >= 0.96) {
     cards.startDrag(t.clientX, t.clientY)
   }
 }
 
 function onTouchMove(e) {
+  if (currentPage.value !== 1) return
   if (window.innerWidth >= 1024) return
   const t = e.touches[0]
 
-  // Showcase scroll mode: scroll the overlay content via touch
-  if (cards.isShowcaseScrolling()) {
-    const dy = touchLastY - t.clientY // positive = finger moved up = scroll down
-    touchLastY = t.clientY
-    const el = afterIntroEl.value
-    if (el) {
-      const maxScroll = el.scrollHeight - el.clientHeight
-      // Swiping down at the top → exit showcase scroll
-      if (dy < 0 && showcaseScrollTarget <= 0) {
-        exitShowcaseScrollMode()
-        e.preventDefault()
-        return
-      }
-      showcaseScrollTarget = Math.max(0, Math.min(maxScroll, showcaseScrollTarget + dy * 1.5))
-    }
-    e.preventDefault()
-    return
-  }
-
-  // Showcase open (but not scrolling yet): swipe up → enter scroll mode
-  if (cards.isShowcaseOpen()) {
-    const dy = t.clientY - touchStartY
-    if (dy < -20) {
-      enterShowcaseScrollMode()
-      touchLastY = t.clientY
-      e.preventDefault()
-      return
-    }
-    // Swipe down → go back to cascade
-    if (dy > 20) {
-      cards.scrollCascade(dy * -0.15)
-      if (!cards.isInPhase9()) exitPhase9WithLenis()
-      e.preventDefault()
-      return
-    }
-    e.preventDefault()
-    return
-  }
-
-  // Phase 9: diagonal drag, vertical swipe collapses
+  // Phase 9: diagonal drag and vertical scroll move the cascade without
+  // leaving it. Returning to the spread is only available via the back button.
   if (cards.isInPhase9()) {
     if (!touchLocked) {
       const dx = Math.abs(t.clientX - touchStartX)
@@ -213,8 +407,7 @@ function onTouchMove(e) {
     }
     if (touchLocked === 'v9') {
       const dy = t.clientY - touchStartY
-      cards.scrollCascade(-dy * 0.15)
-      if (!cards.isInPhase9()) exitPhase9WithLenis()
+      cards.scrollCascade(-dy * 0.4)
       e.preventDefault()
       return
     }
@@ -225,12 +418,18 @@ function onTouchMove(e) {
   }
 
   // Phase 8: direction-locked, horizontal only
+  const progress = cards.getProgress()
+  const spreadScrollLocked = progress >= 0.96
+  const scrollsDown = t.clientY < touchStartY
   if (!touchLocked) {
     const dx = Math.abs(t.clientX - touchStartX)
     const dy = Math.abs(t.clientY - touchStartY)
     if (dx + dy > 8) touchLocked = dx > dy ? 'h' : 'v'
   }
-  if (touchLocked === 'h') {
+  if (spreadScrollLocked && scrollsDown && touchLocked !== 'h') {
+    e.preventDefault()
+  }
+  if (touchLocked === 'h' && spreadScrollLocked) {
     e.preventDefault()
     cards.moveDrag(t.clientX, t.clientY)
     dragPreventsClick = true
@@ -239,42 +438,80 @@ function onTouchMove(e) {
   }
 }
 
-function onTouchEnd() {
+function onTouchEnd(e) {
+  if (currentPage.value !== 1) return
   cards.endDrag()
+
+  // Page-swipe gesture (mobile only): horizontal swipe-left when we're NOT
+  // in a card-drag phase navigates forward to "О нас". Phase 8 (>= 0.92) and
+  // phase 9 (cascade) own horizontal/diagonal touch — don't hijack them.
+  const progress = cards.getProgress()
+  if (
+    window.innerWidth < 1024 &&
+    progress < 0.92 &&
+    !cards.isInPhase9() &&
+    e && e.changedTouches && e.changedTouches[0]
+  ) {
+    const t = e.changedTouches[0]
+    const dx = t.clientX - touchStartX
+    const dy = t.clientY - touchStartY
+    if (Math.abs(dx) > 60 && Math.abs(dy) < Math.abs(dx) * 0.6 && dx < 0) {
+      navigate(2)
+    }
+  }
+
   touchLocked = null
+}
+
+function onMouseDown(e) {
+  if (currentPage.value !== 1) return
+  if (window.innerWidth < 1024) return
+  if (!cards.isInPhase9()) return
+  if (e.button !== 0) return
+  if (e.target?.closest?.('.cascade-back')) return
+
+  mouseDragging = true
+  mouseStartX = e.clientX
+  mouseStartY = e.clientY
+  cards.startDrag(e.clientX, e.clientY)
+}
+
+function onMouseMove(e) {
+  if (!mouseDragging) return
+
+  const dx = e.clientX - mouseStartX
+  const dy = e.clientY - mouseStartY
+  if (Math.abs(dx) + Math.abs(dy) > 4) dragPreventsClick = true
+  cards.moveDrag(e.clientX, e.clientY)
+  e.preventDefault()
+}
+
+function onMouseUp() {
+  if (!mouseDragging) return
+
+  mouseDragging = false
+  cards.endDrag()
+  if (dragPreventsClick) {
+    window.setTimeout(() => {
+      dragPreventsClick = false
+    }, 0)
+  }
 }
 
 function exitPhase9WithLenis() {
   const l = lenisRef.value
   if (l) l.start()
+  cascadeBackVisible.value = false
+  syncCascadeChrome()
 }
 
-function exitShowcaseScrollMode() {
-  if (!cards.isShowcaseScrolling()) return
-  if (afterIntroEl.value) {
-    afterIntroEl.value.style.display = 'none'
-  }
-  cards.exitShowcaseScroll()
-}
-
-function enterShowcaseScrollMode() {
-  if (cards.isShowcaseScrolling()) return
-  if (afterIntroEl.value) {
-    const el = afterIntroEl.value
-    el.style.display = 'block'
-    el.style.position = 'fixed'
-    el.style.inset = '0'
-    el.style.overflowY = 'auto'
-    el.style.zIndex = '60'
-    el.style.background = 'transparent'
-    el.scrollTop = 0
-  }
-  showcaseScrollTarget = 0
-  showcaseScrollCurrent = 0
-  cards.enterShowcaseScroll()
+function handleCascadeBack() {
+  cards.forceExitPhase9()
+  exitPhase9WithLenis()
 }
 
 function onWheel(e) {
+  if (currentPage.value !== 1) return
   // Block scroll during phase9 exit cooldown (absorb trackpad inertia)
   if (!cards.isInPhase9()) {
     if (cards.shouldBlockScroll()) {
@@ -285,48 +522,19 @@ function onWheel(e) {
     return
   }
 
-  // Showcase scroll mode: update target, block Lenis
-  if (cards.isShowcaseScrolling()) {
-    const el = afterIntroEl.value
-    if (el) {
-      const maxScroll = el.scrollHeight - el.clientHeight
-      // Scrolling up at the top → exit showcase scroll, return to showcase view
-      if (e.deltaY < 0 && showcaseScrollTarget <= 0) {
-        exitShowcaseScrollMode()
-        e.preventDefault()
-        e.stopImmediatePropagation()
-        return
-      }
-      showcaseScrollTarget = Math.max(0, Math.min(maxScroll, showcaseScrollTarget + e.deltaY))
-    }
-    e.preventDefault()
-    e.stopImmediatePropagation()
-    return
-  }
-
-  // Showcase open + scroll down → transition to normal page scroll without consuming the event
-  if (cards.isShowcaseOpen() && e.deltaY > 0) {
-    enterShowcaseScrollMode()
-    return
-  }
-
   cards.recordWheel()
   e.preventDefault()
   e.stopImmediatePropagation()
 
-  if (cards.isShowcaseOpen()) {
-    // Scroll up → go back to cascade
-    if (e.deltaY < 0) {
-      cards.scrollCascade(e.deltaY)
-      if (!cards.isInPhase9()) exitPhase9WithLenis()
-    }
-    return
-  }
   cards.scrollCascade(e.deltaY)
-  if (!cards.isInPhase9()) exitPhase9WithLenis()
 }
 
 function tickFn(time, deltaTime) {
+  // Skip the entire intro render loop while an overlay page is active.
+  // Cards live inside the main wrapper that's been swiped off-viewport, so
+  // there's nothing to look at; saves ~24+21 lerps + DOM writes per frame.
+  if (currentPage.value !== 1 && !isAnimating.value) return
+
   mouseTracking.update()
   cards.tick({
     thumbEls: thumbEls.value,
@@ -342,72 +550,36 @@ function tickFn(time, deltaTime) {
     dt: (deltaTime || 16.67) / 1000,
   })
 
-  // Showcase info: fade in as showcase opens, fade out when scrolling starts
-  const showcaseProgress = cards.getShowcaseProgress()
-  const showPage = cards.isShowcaseScrolling()
-
-  // Smooth-scroll the showcase overlay toward target
-  if (showPage && afterIntroEl.value) {
-    showcaseScrollCurrent += (showcaseScrollTarget - showcaseScrollCurrent) * 0.12
-    if (Math.abs(showcaseScrollTarget - showcaseScrollCurrent) < 0.5) {
-      showcaseScrollCurrent = showcaseScrollTarget
-    }
-    afterIntroEl.value.scrollTop = showcaseScrollCurrent
+  // Preload p9 images when approaching phase 9
+  if (!p9ImagesLoaded && cards.getProgress() >= 0.85) {
+    syncP9Images()
   }
 
-  // Slide showcase card up as user scrolls the overlay
   if (stickyEl.value) {
-    if (showPage && afterIntroEl.value) {
-      const scrollY = showcaseScrollCurrent
-      stickyEl.value.style.transform = `translateY(${-scrollY}px)`
-    } else if (!cards.isInPhase9() || !showPage) {
-      stickyEl.value.style.transform = ''
-    }
+    stickyEl.value.style.transform = ''
   }
-  if (showcaseInfoEl.value) {
-    const infoOpacity = showPage ? 0 : Math.max(0, Math.min(1, (showcaseProgress - 0.3) / 0.4))
-    showcaseInfoEl.value.style.opacity = String(infoOpacity)
-    showcaseInfoEl.value.style.transform = `translateY(${(1 - infoOpacity) * 20}px)`
-  }
-
-  // Nav highlight: detect active section (use getBoundingClientRect — works with fixed overlay)
-  if (showPage) {
-    const sections = afterIntroEl.value?.querySelectorAll('[data-nav]')
-    let found = 2
-    if (sections) {
-      const el = afterIntroEl.value
-      const threshold = window.innerHeight * 0.4
-      for (const sec of sections) {
-        const rect = sec.getBoundingClientRect()
-        if (rect.top <= threshold) found = Number(sec.dataset.nav)
-      }
-      // At the very bottom → Контакты
-      if (el && el.scrollHeight - el.scrollTop - el.clientHeight < 50) {
-        found = 3
-      }
-    }
-    activeNav.value = found
-  } else if (cards.isShowcaseOpen()) {
-    activeNav.value = 2
-  } else if (cards.isInPhase9() || cards.getProgress() >= 0.92) {
-    activeNav.value = 1
-  } else {
-    activeNav.value = 0
-  }
+  syncCascadeChrome()
 }
 
 onMounted(() => {
   mouseTracking.start()
   timeline.create({
     introEl: introEl.value,
-    headerEl: headerEl.value,
     stageEl: stageEl.value,
     centerEl: centerEl.value,
     bottomEl: bottomEl.value,
     thumbEls: thumbEls.value,
     cur: cards.cur,
-    onScrollProgress: cards.setProgress,
-    onReady: () => gsap.ticker.add(tickFn),
+    onScrollProgress: (progress) => {
+      cards.setProgress(progress)
+      if (progress >= 0.99 && !introComplete.value) {
+        introComplete.value = true
+      }
+    },
+    onReady: () => {
+      gsap.ticker.add(tickFn)
+      introComplete.value = true
+    },
   })
 
   // Mount GL glass-card overlay & preload textures
@@ -421,17 +593,31 @@ onMounted(() => {
   window.addEventListener('touchstart', onTouchStart, { passive: true, capture: true })
   window.addEventListener('touchmove', onTouchMove, { passive: false, capture: true })
   window.addEventListener('touchend', onTouchEnd, { passive: true, capture: true })
+  window.addEventListener('mousedown', onMouseDown, { capture: true })
+  window.addEventListener('mousemove', onMouseMove, { passive: false, capture: true })
+  window.addEventListener('mouseup', onMouseUp, { capture: true })
   window.addEventListener('wheel', onWheel, { passive: false, capture: true })
+  window.addEventListener(GO_CIRCLE_EVENT, requestCirclePhase)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('touchstart', onTouchStart, { capture: true })
   window.removeEventListener('touchmove', onTouchMove, { capture: true })
   window.removeEventListener('touchend', onTouchEnd, { capture: true })
+  window.removeEventListener('mousedown', onMouseDown, { capture: true })
+  window.removeEventListener('mousemove', onMouseMove, { capture: true })
+  window.removeEventListener('mouseup', onMouseUp, { capture: true })
   window.removeEventListener('wheel', onWheel, { capture: true })
+  window.removeEventListener(GO_CIRCLE_EVENT, requestCirclePhase)
+  if (cascadeChromeActive) {
+    cascadeChromeActive = false
+    window.dispatchEvent(new CustomEvent(CASCADE_STATE_EVENT, { detail: { active: false } }))
+  }
   timeline.destroy()
   gsap.ticker.remove(tickFn)
   mouseTracking.stop()
+  cancelSpreadJump()
+  cancelCircleScroll()
   glCardLayer.destroy()
 })
 </script>
@@ -440,55 +626,15 @@ onBeforeUnmount(() => {
 .intro {
   position: relative;
   height: 100vh;
+  height: 100dvh;
   z-index: 50;
   background: #fafafa;
 }
 
-.after-intro {
-  display: none;
-}
-
-.showcase-spacer {
-  height: 100vh;
-}
-
 .intro-sticky {
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
-}
-
-/* ── Header ── */
-.intro-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  padding: 2rem 3rem;
-}
-
-.intro-nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3rem;
-
-}
-
-.intro-nav a {
-  font-size: 0.7rem;
-  font-weight: 400;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #1a1a1a;
-  text-decoration: none;
-  opacity: 0.45;
-  transition: opacity 0.3s;
-}
-
-.intro-nav a:hover,
-.intro-nav a.active {
-  opacity: 1;
 }
 
 /* ── Thumbnail stage ── */
@@ -503,15 +649,18 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 50px;
-  height: 72px;
-  margin-left: -25px;
-  margin-top: -36px;
-  border-radius: 6px;
-  will-change: auto;
+  width: 150px;
+  height: 216px;
+  margin-left: -75px;
+  margin-top: -108px;
+  border-radius: 18px;
   transform-style: preserve-3d;
   backface-visibility: visible;
   outline: 1px solid transparent;
+}
+
+@media (min-width: 1024px) {
+  .thumb { will-change: transform, opacity; }
 }
 
 .thumb img {
@@ -520,6 +669,8 @@ onBeforeUnmount(() => {
   object-fit: cover;
   border-radius: inherit;
   display: block;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 /* Glass highlight overlay */
@@ -551,12 +702,17 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   perspective: none;
+  pointer-events: none;
 }
 
 .p9-thumb {
   opacity: 0;
   pointer-events: none;
-  cursor: pointer;
+  cursor: grab;
+}
+
+.p9-thumb:active {
+  cursor: grabbing;
 }
 
 /* ── Center text ── */
@@ -632,15 +788,27 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
+@media (max-width: 1023px) {
+  .intro-bottom { bottom: 52px; }
+}
+
+.bottom-title-stack {
+  position: relative;
+  margin-bottom: 7px;
+}
+
 .bottom-title {
   font-size: clamp(0.8rem, 1.4vw, 1.05rem);
-  font-weight: 400;
+  font-weight: 200;
   letter-spacing: 0.08em;
   color: #1a1a1a;
-  margin-bottom: 0.5rem;
 }
 
 .bottom-title-philosophy {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   font-weight: 100;
 }
 
@@ -652,101 +820,114 @@ onBeforeUnmount(() => {
   color: rgba(26, 26, 26, 0.35);
 }
 
-/* ── Showcase info ── */
-.showcase-info {
-  position: absolute;
-  bottom: 8%;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  text-align: center;
-  pointer-events: none;
-  opacity: 0;
+.bottom-sub--project {
+  margin-top: -5px;
+  letter-spacing: 0.08em;
+  text-transform: none;
+  font-size: 14px;
+  color: black;
 }
-
-.showcase-title {
-
-  font-weight: 300;
-  font-size: clamp(1.1rem, 2.4vw, 1.8rem);
-  letter-spacing: -0.01em;
-  color: #1a1a1a;
-  margin: 0 0 1rem;
-}
-
-.showcase-meta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.7rem;
-
-  font-size: 0.68rem;
-  font-weight: 300;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(26, 26, 26, 0.4);
-  margin-bottom: 2rem;
-}
-
-.showcase-dot {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: rgba(26, 26, 26, 0.2);
-}
-
-.showcase-scroll-hint {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-
-  font-size: 0.6rem;
-  font-weight: 300;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: rgba(26, 26, 26, 0.25);
-}
-
-.showcase-scroll-hint svg {
-  animation: showcase-bounce 2s ease-in-out infinite;
-}
-
-@keyframes showcase-bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(5px); }
-}
-
 
 /* ── Responsive ── */
 @media (max-width: 1023px) {
   .thumb {
-    width: 40px;
-    height: 58px;
-    margin-left: -20px;
-    margin-top: -29px;
-    border-radius: 5px;
+    width: 120px;
+    height: 174px;
+    margin-left: -60px;
+    margin-top: -87px;
+    border-radius: 15px;
   }
 }
 
-@media (max-width: 640px) {
-  .intro-nav {
-    gap: 1.5rem;
-  }
-
-  .intro-nav a {
-    font-size: 0.6rem;
-  }
-
+@media (max-width: 640px), (max-width: 1023px) and (max-height: 520px) and (orientation: landscape) {
   .intro-brand {
     font-size: 0.7rem;
   }
 
   .thumb {
-    width: 32px;
-    height: 46px;
-    margin-left: -16px;
-    margin-top: -23px;
-    border-radius: 4px;
+    width: 96px;
+    height: 138px;
+    margin-left: -48px;
+    margin-top: -69px;
+    border-radius: 12px;
+  }
+}
+
+@media (max-width: 1023px) and (max-height: 520px) and (orientation: landscape) {
+  .thumb {
+    width: 78px;
+    height: 112px;
+    margin-left: -39px;
+    margin-top: -56px;
+    border-radius: 10px;
+  }
+
+  .intro-bottom {
+    bottom: 1rem;
+  }
+
+  .intro-arc-text {
+    bottom: 7%;
+  }
+
+  .intro-arc-text p {
+    font-size: 0.58rem;
+    line-height: 1.55;
+    max-width: 420px;
+  }
+
+  .intro-sub,
+  .bottom-sub {
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+  }
+
+  .bottom-title {
+    font-size: 0.78rem;
+  }
+}
+
+.cascade-back {
+  position: fixed;
+  top: 1.2rem;
+  left: 1.2rem;
+  z-index: 220;
+  border: none;
+  background: none;
+  color: #1a1a1a;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 300;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+
+.cascade-back-icon {
+  flex: 0 0 auto;
+}
+
+.cascade-back:hover {
+  opacity: 1;
+}
+
+@media (max-width: 1023px) {
+  .cascade-back {
+    top: 4.4rem;
+    left: 1rem;
+    font-size: 0.64rem;
+  }
+}
+
+@media (max-width: 1023px) and (max-height: 520px) and (orientation: landscape) {
+  .cascade-back {
+    top: 3rem;
   }
 }
 </style>

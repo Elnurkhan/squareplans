@@ -1,8 +1,11 @@
-import { COUNT, P9_COUNT, lerp } from '../constants'
+import { COUNT, P9_COUNT, isCompactLandscape, usesSmallMobileCards } from '../constants'
+
+const CASCADE_REFERENCE_COUNT = 21
 
 export function getCascadeLayout(vw, vh) {
   const isMobile = vw < 1024
   const pad = 200
+  const spacingSlots = Math.max(1, CASCADE_REFERENCE_COUNT - 1)
 
   let diagAngle, desiredStep, cardScale
 
@@ -10,14 +13,15 @@ export function getCascadeLayout(vw, vh) {
     const refW = 1440, refH = 900
     diagAngle = -Math.atan2(refH, refW) * .9
     const refDiag = Math.sqrt(refW * refW + refH * refH)
-    desiredStep = (refDiag - pad * 2) / (P9_COUNT - 1) * 0.9
+    desiredStep = (refDiag - pad * 2) / spacingSlots * 0.9
     const desktopScale = Math.min(8, desiredStep / 70 * 1.8)
-    const cssCardW = vw < 640 ? 32 : 40
-    cardScale = desktopScale * (50 / cssCardW)
+    const cssCardW = usesSmallMobileCards(vw, vh) ? 32 : 40
+    const compactScale = isCompactLandscape(vw, vh) ? 0.9 : 1.3
+    cardScale = desktopScale * (50 / cssCardW) * compactScale
   } else {
     diagAngle = -Math.atan2(vh, vw) * .9
     const screenDiag = Math.sqrt(vw * vw + vh * vh)
-    desiredStep = (screenDiag - pad * 2) / (P9_COUNT - 1) * 0.9
+    desiredStep = (screenDiag - pad * 2) / spacingSlots * 0.9
     const baseSize = Math.min(Math.max(vw * 0.04, 40), 70)
     cardScale = Math.min(8, desiredStep / baseSize * 1.8)
   }
@@ -25,63 +29,62 @@ export function getCascadeLayout(vw, vh) {
   return { diagAngle, desiredStep, cardScale }
 }
 
+export function getCascadeDragBounds(vw, vh, visibleCount = P9_COUNT) {
+  const { desiredStep } = getCascadeLayout(vw, vh)
+  const visibleSlots = Math.max(0, Math.min(P9_COUNT, visibleCount) - 1)
+  const totalLen = visibleSlots * desiredStep
+
+  if (vw < 1024) {
+    return Math.max(0, totalLen / 2 - Math.min(vw, vh) * 0.3)
+  }
+
+  const referenceLen = Math.max(0, CASCADE_REFERENCE_COUNT - 1) * desiredStep
+  return Math.max(0, (totalLen - referenceLen) / 2)
+}
+
 export function compute(ctx) {
   const { vh, vw, tgt, tgtBottom, p9Tgt } = ctx
-  const collapse = ctx.cascadeCollapse || 0
+  const visibleCount = Math.max(0, Math.min(P9_COUNT, ctx.p9ActiveCount ?? P9_COUNT))
 
   for (let i = 0; i < COUNT; i++) {
     tgt[i].o = 0
   }
 
-  const { diagAngle, desiredStep, cardScale } = getCascadeLayout(vw, vh)
+  const { diagAngle, desiredStep, cardScale } = getCascadeLayout(vw, vh, visibleCount || 1)
 
-  // Phase A: cascade collapse (0→1), Phase B: showcase (1→2)
-  const collapseT = Math.min(collapse, 1)
-  const showcaseT = Math.max(0, Math.min(collapse - 1, 1))
+  const dd = ctx.dragDiag || 0
+  const dirX = ctx.cascadeDirX || Math.cos(diagAngle)
+  const dirY = ctx.cascadeDirY || Math.sin(diagAngle)
+  const anchorX = dd * dirX
+  const anchorY = dd * dirY
 
-  const collapsedStep = 0.4
-  const effectiveStep = lerp(desiredStep, collapsedStep, collapseT)
-
-  const totalLen = (P9_COUNT - 1) * effectiveStep
+  const totalLen = Math.max(0, visibleCount - 1) * desiredStep
   const startX = -totalLen / 2 * Math.cos(diagAngle)
   const startY = -totalLen / 2 * Math.sin(diagAngle)
 
-  // Top card index (last in the stack)
-  const topIdx = P9_COUNT - 1
-
+  // Static cascade: every card sits on the diagonal, no collapse, no showcase.
   for (let i = 0; i < P9_COUNT; i++) {
-    const diagX = startX + i * effectiveStep * Math.cos(diagAngle)
-    const diagY = startY + i * effectiveStep * Math.sin(diagAngle)
-    const dd = ctx.dragDiag || 0
-
-    const cascadeX = diagX + dd * (ctx.cascadeDirX || 0)
-    const cascadeY = diagY + dd * (ctx.cascadeDirY || 0)
-
-    if (i === topIdx) {
-      // Top card: move to center, flatten rotation, scale up
-      const showcaseScale = Math.min(vw * 0.45, vh * 0.55) / 50
-      p9Tgt[i].x = lerp(cascadeX, 0, showcaseT)
-      p9Tgt[i].y = lerp(cascadeY, 0, showcaseT)
-      p9Tgt[i].z = lerp(i * collapseT * 2, 0, showcaseT)
-      p9Tgt[i].rx = lerp(lerp(-25, -20, collapseT), 0, showcaseT)
-      p9Tgt[i].ry = lerp(lerp(-35, -30, collapseT), 0, showcaseT)
+    if (i >= visibleCount) {
+      p9Tgt[i].x = 0
+      p9Tgt[i].y = 0
+      p9Tgt[i].z = 0
+      p9Tgt[i].rx = 0
+      p9Tgt[i].ry = 0
       p9Tgt[i].r = 0
-      p9Tgt[i].s = lerp(cardScale, showcaseScale, showcaseT)
-      p9Tgt[i].o = 1
-    } else {
-      // Other cards: fade out during showcase
-      p9Tgt[i].x = cascadeX
-      p9Tgt[i].y = cascadeY
-      p9Tgt[i].z = i * collapseT * 2
-      p9Tgt[i].rx = lerp(-25, -20, collapseT)
-      p9Tgt[i].ry = lerp(-35, -30, collapseT)
-      p9Tgt[i].r = 0
-      p9Tgt[i].s = cardScale
-      p9Tgt[i].o = 1 - showcaseT
+      p9Tgt[i].s = 1
+      p9Tgt[i].o = 0
+      continue
     }
+    p9Tgt[i].x = startX + i * desiredStep * Math.cos(diagAngle) + anchorX
+    p9Tgt[i].y = startY + i * desiredStep * Math.sin(diagAngle) + anchorY
+    p9Tgt[i].z = 0
+    p9Tgt[i].rx = -25
+    p9Tgt[i].ry = -35
+    p9Tgt[i].r = 0
+    p9Tgt[i].s = cardScale
+    p9Tgt[i].o = 1
   }
 
-  // Bottom stays fully visible — the philosophy text becomes part of the page in showcase.
   tgtBottom.o = 1
   tgtBottom.y = 0
 }

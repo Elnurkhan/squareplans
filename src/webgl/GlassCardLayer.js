@@ -153,58 +153,95 @@ export class GlassCardLayer {
 
   _initBox() {
     const gl = this.gl
-    // Unit box (-0.5 … 0.5)^3. Y-down ortho: -y is top of screen.
+    // Rounded box: front/back are fan-meshed rounded rects (no SDF clip needed),
+    // side strip follows the same perimeter. No depth conflicts at edges.
     // Per-vertex: pos(3) uv(2) normal(3) faceId(1) = 9 floats, stride 36.
-    // Faces: 0=front(+z), 1=back(-z), 2=right(+x), 3=left(-x), 4=top(-y), 5=bottom(+y)
-    const verts = new Float32Array([
-      // Front (+z) — matches the old quad
-      -0.5,-0.5, 0.5,  0,0,   0,0,1,   0,
-       0.5,-0.5, 0.5,  1,0,   0,0,1,   0,
-      -0.5, 0.5, 0.5,  0,1,   0,0,1,   0,
-       0.5, 0.5, 0.5,  1,1,   0,0,1,   0,
-      // Back (-z)
-       0.5,-0.5,-0.5,  0,0,   0,0,-1,  1,
-      -0.5,-0.5,-0.5,  1,0,   0,0,-1,  1,
-       0.5, 0.5,-0.5,  0,1,   0,0,-1,  1,
-      -0.5, 0.5,-0.5,  1,1,   0,0,-1,  1,
-      // Right (+x) — samples the right edge column (u=1) along y
-       0.5,-0.5, 0.5,  1,0,   1,0,0,   2,
-       0.5,-0.5,-0.5,  1,0,   1,0,0,   2,
-       0.5, 0.5, 0.5,  1,1,   1,0,0,   2,
-       0.5, 0.5,-0.5,  1,1,   1,0,0,   2,
-      // Left (-x) — samples the left edge column (u=0)
-      -0.5,-0.5,-0.5,  0,0,  -1,0,0,   3,
-      -0.5,-0.5, 0.5,  0,0,  -1,0,0,   3,
-      -0.5, 0.5,-0.5,  0,1,  -1,0,0,   3,
-      -0.5, 0.5, 0.5,  0,1,  -1,0,0,   3,
-      // Top (-y, top of screen) — samples top edge row (v=0)
-      -0.5,-0.5,-0.5,  0,0,   0,-1,0,  4,
-       0.5,-0.5,-0.5,  1,0,   0,-1,0,  4,
-      -0.5,-0.5, 0.5,  0,0,   0,-1,0,  4,
-       0.5,-0.5, 0.5,  1,0,   0,-1,0,  4,
-      // Bottom (+y) — samples bottom edge row (v=1)
-      -0.5, 0.5, 0.5,  0,1,   0,1,0,   5,
-       0.5, 0.5, 0.5,  1,1,   0,1,0,   5,
-      -0.5, 0.5,-0.5,  0,1,   0,1,0,   5,
-       0.5, 0.5,-0.5,  1,1,   0,1,0,   5,
-    ])
-    const indices = new Uint16Array(36)
-    for (let f = 0; f < 6; f++) {
-      const b = f * 4
-      const i = f * 6
-      indices[i]     = b
-      indices[i + 1] = b + 1
-      indices[i + 2] = b + 2
-      indices[i + 3] = b + 1
-      indices[i + 4] = b + 3
-      indices[i + 5] = b + 2
+    const R = 0.075   // corner radius in local coords
+    const NC = 8      // segments per quarter-circle
+
+    // ── Perimeter points (clockwise: TR → BR → BL → TL) ──
+    const perim = []
+    function addCorner(cx, cy, startAngle) {
+      for (let i = 0; i <= NC; i++) {
+        const a = startAngle + (i / NC) * (Math.PI / 2)
+        perim.push({ x: cx + R * Math.cos(a), y: cy + R * Math.sin(a),
+                      nx: Math.cos(a), ny: Math.sin(a) })
+      }
     }
+    addCorner( 0.5 - R, -0.5 + R, -Math.PI / 2)
+    addCorner( 0.5 - R,  0.5 - R,  0)
+    addCorner(-0.5 + R,  0.5 - R,  Math.PI / 2)
+    addCorner(-0.5 + R, -0.5 + R,  Math.PI)
+
+    const P = perim.length // 4*(NC+1) = 36
+
+    // Vertex layout:
+    //   Front fan:  [0] center + [1..P] perimeter          (P+1 verts, faceId=0)
+    //   Back fan:   [P+1] center + [P+2..2P+1] perimeter   (P+1 verts, faceId=1)
+    //   Side strip: [2P+2 .. 2P+2+2P-1]                    (2P verts,  faceId=2)
+    const FB = P + 1
+    const SB = 2 * (P + 1)
+    const totalVerts = 2 * (P + 1) + 2 * P
+    const data = new Float32Array(totalVerts * 9)
+    let vi = 0
+    function v(x, y, z, u, vv, nx, ny, nz, fid) {
+      data[vi++] = x; data[vi++] = y; data[vi++] = z
+      data[vi++] = u; data[vi++] = vv
+      data[vi++] = nx; data[vi++] = ny; data[vi++] = nz
+      data[vi++] = fid
+    }
+
+    // ── Front face fan (faceId 0) ──
+    v(0, 0, 0.5,  0.5, 0.5,  0, 0, 1, 0) // center
+    for (let i = 0; i < P; i++) {
+      const { x, y } = perim[i]
+      v(x, y, 0.5,  x + 0.5, y + 0.5,  0, 0, 1, 0)
+    }
+
+    // ── Back face fan (faceId 1, mirrored UVs) ──
+    v(0, 0, -0.5,  0.5, 0.5,  0, 0, -1, 1) // center
+    for (let i = 0; i < P; i++) {
+      const { x, y } = perim[i]
+      v(x, y, -0.5,  0.5 - x, y + 0.5,  0, 0, -1, 1)
+    }
+
+    // ── Side strip (faceId 2) ──
+    for (let i = 0; i < P; i++) {
+      const { x, y, nx, ny } = perim[i]
+      const u = x + 0.5, uv = y + 0.5
+      v(x, y,  0.5, u, uv, nx, ny, 0, 2)
+      v(x, y, -0.5, u, uv, nx, ny, 0, 2)
+    }
+
+    // ── Indices ──
+    const totalIdx = P * 3 + P * 3 + P * 6 // front fan + back fan + side quads
+    const idx = new Uint16Array(totalIdx)
+    let ii = 0
+
+    // Front fan (CCW from +z)
+    for (let i = 0; i < P; i++) {
+      idx[ii++] = 0;  idx[ii++] = 1 + i;  idx[ii++] = 1 + (i + 1) % P
+    }
+    // Back fan (CW from -z = CCW when viewed from behind)
+    for (let i = 0; i < P; i++) {
+      idx[ii++] = FB;  idx[ii++] = FB + 1 + (i + 1) % P;  idx[ii++] = FB + 1 + i
+    }
+    // Side strip — closed-loop quads
+    for (let i = 0; i < P; i++) {
+      const n = (i + 1) % P
+      const a = SB + i * 2, b = SB + i * 2 + 1
+      const c = SB + n * 2, d = SB + n * 2 + 1
+      idx[ii++] = a; idx[ii++] = c; idx[ii++] = b
+      idx[ii++] = c; idx[ii++] = d; idx[ii++] = b
+    }
+
+    this._indexCount = totalIdx
     this._boxBuf = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, this._boxBuf)
-    gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW)
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW)
     this._boxIdx = gl.createBuffer()
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._boxIdx)
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW)
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW)
   }
 
   /* ── lifecycle ── */
@@ -333,7 +370,7 @@ export class GlassCardLayer {
       gl.uniform1f(this._loc.uAspect, w / h)
       gl.uniform1f(this._loc.uAlpha, c.o)
       gl.bindTexture(gl.TEXTURE_2D, tex)
-      gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0)
+      gl.drawElements(gl.TRIANGLES, this._indexCount, gl.UNSIGNED_SHORT, 0)
     }
   }
 
