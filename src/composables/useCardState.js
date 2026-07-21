@@ -443,11 +443,11 @@ export function useCardState() {
       // the lerp never reaches exactly zero. Snap them to 0 explicitly so we
       // don't leave ghosted cards on the spread.
       for (let i = 0; i < P9_COUNT && i < p9ThumbEls.length; i++) {
-        if (p9Cur[i].o !== 0) {
-          p9Cur[i].o = 0
-          p9ThumbEls[i].style.opacity = '0'
-          p9ThumbEls[i].style.pointerEvents = 'none'
-        }
+        p9Cur[i].o = 0
+        p9Tgt[i].o = 0
+        p9Hover[i] = 0
+        p9ThumbEls[i].style.opacity = '0'
+        p9ThumbEls[i].style.pointerEvents = 'none'
       }
     } else {
     // Phase 9 elements — hover detection
@@ -637,6 +637,27 @@ export function useCardState() {
     currentProgress = 1
   }
 
+  function exitCascadeToSpread() {
+    const now = performance.now()
+    phase9 = false
+    phase9Progress = 0
+    phase9ExitTime = now
+    lastWheelTime = now
+    currentProgress = 1
+    p8HoveredIdx = -1
+    dragOffsetX = 0
+    dragDiag = 0
+    dragMomentumX = 0
+    dragMomentumDiag = 0
+    isDragging = false
+    pendingSnap = true
+    for (let i = 0; i < P9_COUNT; i++) {
+      p9Cur[i].o = 0
+      p9Tgt[i].o = 0
+      p9Hover[i] = 0
+    }
+  }
+
   function resetToCircle() {
     phase9 = false
     phase9Progress = 0
@@ -665,5 +686,5 @@ export function useCardState() {
     pendingSnap = true
   }
 
-  return { cur, thumbnails, p9Thumbnails, getP9LightboxPhotos, setProgress, onThumbClick, scrollCascade, tick, startDrag, moveDrag, endDrag, isInPhase9, forceExitPhase9, resetToCircle, shouldBlockScroll, recordWheel, getProgress, snap }
+  return { cur, thumbnails, p9Thumbnails, getP9LightboxPhotos, setProgress, onThumbClick, scrollCascade, tick, startDrag, moveDrag, endDrag, isInPhase9, forceExitPhase9, exitCascadeToSpread, resetToCircle, shouldBlockScroll, recordWheel, getProgress, snap }
 }

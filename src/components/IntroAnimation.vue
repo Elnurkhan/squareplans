@@ -506,8 +506,24 @@ function exitPhase9WithLenis() {
 }
 
 function handleCascadeBack() {
-  cards.forceExitPhase9()
-  exitPhase9WithLenis()
+  cancelSpreadJump()
+  cancelCircleScroll()
+
+  const l = lenisRef.value
+  const spreadY = timeline.getScrollPoint(SPREAD_JUMP_PROGRESS)
+  if (Number.isFinite(spreadY) && spreadY > 0) {
+    window.scrollTo(0, spreadY)
+    l?.scrollTo?.(spreadY, { immediate: true, force: true })
+    l?.raf?.(performance.now())
+  }
+
+  cards.exitCascadeToSpread()
+  cascadeBackVisible.value = false
+  dragPreventsClick = false
+  touchLocked = null
+  syncCascadeChrome()
+  ScrollTrigger.update()
+  l?.start()
 }
 
 function onWheel(e) {
