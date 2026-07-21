@@ -1,11 +1,38 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import compression from 'vite-plugin-compression'
+import { cpSync, mkdirSync, readdirSync, rmSync } from 'node:fs'
+import { join } from 'node:path'
 
-export default defineConfig({
+function copyPublicAssetsWithoutOriginals() {
+  const publicDir = 'public'
+  const distDir = 'dist'
+  const excludedEntries = new Set(['projects'])
+
+  return {
+    name: 'copy-public-assets-without-originals',
+    apply: 'build',
+    closeBundle() {
+      mkdirSync(distDir, { recursive: true })
+
+      for (const entry of readdirSync(publicDir)) {
+        if (excludedEntries.has(entry)) continue
+
+        const from = join(publicDir, entry)
+        const to = join(distDir, entry)
+        rmSync(to, { recursive: true, force: true })
+        cpSync(from, to, { recursive: true })
+      }
+    },
+  }
+}
+
+export default defineConfig(({ command }) => ({
   base: '/',
+  publicDir: command === 'build' ? false : 'public',
   plugins: [
     vue(),
+    copyPublicAssetsWithoutOriginals(),
     // Gzip precompression
     compression({
       algorithm: 'gzip',
@@ -48,4 +75,4 @@ export default defineConfig({
     // Generate sourcemaps for production debugging
     sourcemap: 'hidden',
   },
-})
+}))
