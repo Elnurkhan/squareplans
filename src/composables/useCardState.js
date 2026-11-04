@@ -162,6 +162,10 @@ export function useCardState() {
     const dir = isMobile ? 'projects-mobile' : 'projects-webp'
     return base + encodeURI(path.replace(/^projects\//, `${dir}/`).replace(/\.(jpe?g|JPG)$/i, '.webp'))
   }
+  // 500px for DOM card display (150px CSS × 3x DPR = 450px needed)
+  const toCardUrl = (path) => base + encodeURI(path.replace(/^projects\//, 'projects-card/').replace(/\.(jpe?g|JPG)$/i, '.webp'))
+  // 200px tiny thumbnails for WebGL textures — avoids CORS double-download of full images
+  const toThumbUrl = (path) => base + encodeURI(path.replace(/^projects\//, 'projects-thumb/').replace(/\.(jpe?g|JPG)$/i, '.webp'))
 
   // Real project photos distributed across 24 circle slots
   const projectPhotos = [
@@ -170,14 +174,16 @@ export function useCardState() {
     'projects/afi/3.jpg',   'projects/level/3.jpg',  'projects/mosfilm/003.jpg', 'projects/n100/4.jpg',  'projects/n35/3.jpg',
     'projects/afi/4.jpg',   'projects/level/4.jpg',  'projects/mosfilm/004.jpg', 'projects/Италия. Сан-Ремо/12.jpg', 'projects/n35/4.jpg',
     'projects/afi/5.jpg',   'projects/Италия. Сан-Ремо/35.jpg', 'projects/mosfilm/005.jpg', 'projects/n100/6.jpg',
-  ].map(toPublicUrl)
+  ]
   const thumbnails = Array.from({ length: COUNT }, (_, i) => {
     const spreadSlot = getSpreadSlot(i)
     const spreadPhoto = spreadSlot >= 0 && spreadSlot <= TOTAL_CARDS
       ? spreadProjectPhotos[spreadSlot]
       : null
+    const rawPath = spreadPhoto ?? projectPhotos[i % projectPhotos.length]
     return {
-      src: spreadPhoto ? toPublicUrl(spreadPhoto) : projectPhotos[i % projectPhotos.length],
+      src: toCardUrl(rawPath),
+      thumbSrc: toThumbUrl(rawPath),
     }
   })
 

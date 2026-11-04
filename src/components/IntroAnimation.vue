@@ -602,7 +602,7 @@ onMounted(() => {
   if (glCardLayer.gl && stageEl.value) {
     glCardLayer.mount(stageEl.value)
     for (let i = 0; i < thumbnails.length; i++) {
-      glCardLayer.loadTexture(i, thumbnails[i].src)
+      glCardLayer.loadTexture(i, thumbnails[i].thumbSrc)
     }
   }
 
