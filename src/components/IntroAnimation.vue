@@ -577,24 +577,8 @@ function tickFn(time, deltaTime) {
   syncCascadeChrome()
 }
 
-onMounted(async () => {
+onMounted(() => {
   mouseTracking.start()
-  // Lock scroll immediately so user can't navigate before animation starts
-  document.documentElement.style.overflow = 'hidden'
-
-  // Wait for all card images to load before starting the animation so cards
-  // appear with photos instead of empty placeholders. Cap at 2.5s so slow
-  // connections never block the animation indefinitely.
-  await Promise.race([
-    Promise.all(thumbnails.map(t => new Promise(r => {
-      const img = new Image()
-      img.onload = r
-      img.onerror = r
-      img.src = t.src
-    }))),
-    new Promise(r => setTimeout(r, 2500)),
-  ])
-
   timeline.create({
     introEl: introEl.value,
     stageEl: stageEl.value,
@@ -689,7 +673,6 @@ onBeforeUnmount(() => {
   transform-style: preserve-3d;
   backface-visibility: visible;
   outline: 1px solid transparent;
-  background: #e8e3db;
 }
 
 @media (min-width: 1024px) {
