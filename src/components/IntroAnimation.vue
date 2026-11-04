@@ -673,6 +673,7 @@ onBeforeUnmount(() => {
   transform-style: preserve-3d;
   backface-visibility: visible;
   outline: 1px solid transparent;
+  background: #e8e3db;
 }
 
 @media (min-width: 1024px) {
