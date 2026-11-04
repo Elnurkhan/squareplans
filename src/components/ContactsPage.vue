@@ -9,11 +9,14 @@
 
       <div class="hero-row">
         <div class="half-photo reveal" style="--i: 2">
-          <img
-            :src="`${$base}Rectangle%2091.png`"
-            alt="SquarePlans"
-            loading="lazy"
-          />
+          <picture>
+            <source :srcset="`${$base}Rectangle%2091.webp`" type="image/webp" />
+            <img
+              :src="`${$base}Rectangle%2091.png`"
+              alt="SquarePlans"
+              loading="lazy"
+            />
+          </picture>
         </div>
 
         <dl class="contacts-list">

@@ -3,12 +3,15 @@
     <div class="about-scroll">
       <div class="about-grid">
         <figure class="photo-col reveal" style="--i: 1">
-          <img
-            class="founder-photo"
-            :src="`${$base}about/Rectangle%2090.JPG`"
-            alt="Илья — архитектор-дизайнер и&nbsp;основатель студии SquarePlans"
-            loading="lazy"
-          />
+          <picture>
+            <source :srcset="`${$base}about/Rectangle%2090-mobile.webp 900w, ${$base}about/Rectangle%2090.webp 1800w`" sizes="(max-width:768px) 100vw, 40vw" type="image/webp" />
+            <img
+              class="founder-photo"
+              :src="`${$base}about/Rectangle%2090.JPG`"
+              alt="Илья — архитектор-дизайнер и&nbsp;основатель студии SquarePlans"
+              loading="lazy"
+            />
+          </picture>
         </figure>
 
         <div class="text-col">

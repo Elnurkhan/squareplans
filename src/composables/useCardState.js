@@ -157,7 +157,11 @@ export function useCardState() {
   const cascadeAngle = -Math.atan2(900, 1440) * 0.9
   const cascadeDirX = Math.cos(cascadeAngle)
   const cascadeDirY = Math.sin(cascadeAngle)
-  const toPublicUrl = (path) => base + encodeURI(path.replace(/^projects\//, 'projects-optimized/'))
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
+  const toPublicUrl = (path) => {
+    const dir = isMobile ? 'projects-mobile' : 'projects-webp'
+    return base + encodeURI(path.replace(/^projects\//, `${dir}/`).replace(/\.(jpe?g|JPG)$/i, '.webp'))
+  }
 
   // Real project photos distributed across 24 circle slots
   const projectPhotos = [

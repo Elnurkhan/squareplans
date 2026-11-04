@@ -84,12 +84,20 @@ watch(() => props.visible, (val) => {
   if (val) {
     currentIndex.value = props.startIndex
     document.body.style.overflow = 'hidden'
+    // Preload neighbors of the starting image
+    if (props.photos?.length) {
+      const n = props.photos.length
+      ;[-1, 1].forEach(d => {
+        const src = props.photos[(props.startIndex + d + n) % n]?.src
+        if (src) { const img = new Image(); img.src = src }
+      })
+    }
   } else {
     document.body.style.overflow = ''
   }
 })
 
-watch(currentIndex, async () => {
+watch(currentIndex, async (idx) => {
   await nextTick()
   const track = thumbsTrackEl.value
   if (!track) return
@@ -97,6 +105,13 @@ watch(currentIndex, async () => {
   if (active) {
     active.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
   }
+  // Preload adjacent images
+  if (!props.photos) return
+  const n = props.photos.length
+  ;[idx - 1, idx + 1].forEach(i => {
+    const src = props.photos[(i + n) % n]?.src
+    if (src) { const img = new Image(); img.src = src }
+  })
 })
 
 function close() {

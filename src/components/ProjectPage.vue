@@ -15,13 +15,22 @@
       </div>
       <div class="pp-po-gallery">
         <div class="pp-po-img pp-po-side">
-          <img :src="`${$base}projects-optimized/afi/1.jpg`" alt="" loading="lazy" />
+          <picture>
+            <source :srcset="`${$base}projects-mobile/afi/1.webp 900w, ${$base}projects-webp/afi/1.webp 1800w`" sizes="(max-width:768px) 50vw, 33vw" type="image/webp" />
+            <img :src="`${$base}projects-optimized/afi/1.jpg`" alt="" loading="lazy" />
+          </picture>
         </div>
         <div class="pp-po-img pp-po-center" ref="poCenterImg">
-          <img :src="`${$base}projects-optimized/level/1.jpg`" alt="" loading="lazy" />
+          <picture>
+            <source :srcset="`${$base}projects-mobile/level/1.webp 900w, ${$base}projects-webp/level/1.webp 1800w`" sizes="(max-width:768px) 100vw, 40vw" type="image/webp" />
+            <img :src="`${$base}projects-optimized/level/1.jpg`" alt="" loading="lazy" />
+          </picture>
         </div>
         <div class="pp-po-img pp-po-side">
-          <img :src="`${$base}projects-optimized/mosfilm/001.jpg`" alt="" loading="lazy" />
+          <picture>
+            <source :srcset="`${$base}projects-mobile/mosfilm/001.webp 900w, ${$base}projects-webp/mosfilm/001.webp 1800w`" sizes="(max-width:768px) 50vw, 33vw" type="image/webp" />
+            <img :src="`${$base}projects-optimized/mosfilm/001.jpg`" alt="" loading="lazy" />
+          </picture>
         </div>
       </div>
     </section>
@@ -37,7 +46,10 @@
         </div>
       </div>
       <div class="pp-ae-photo rv rv-img" style="transition-delay:.2s">
-        <img :src="`${$base}projects-optimized/n35/1.jpg`" alt="" loading="lazy" />
+        <picture>
+          <source :srcset="`${$base}projects-mobile/n35/1.webp 900w, ${$base}projects-webp/n35/1.webp 1800w`" sizes="(max-width:768px) 100vw, 50vw" type="image/webp" />
+          <img :src="`${$base}projects-optimized/n35/1.jpg`" alt="" loading="lazy" />
+        </picture>
       </div>
     </section>
 
@@ -48,7 +60,10 @@
         {{ t('pp.mission.quote') }}
       </h2>
       <div class="pp-mission-photo rv rv-img" style="transition-delay:.2s">
-        <img :src="`${$base}projects-optimized/n100/6.jpg`" alt="" loading="lazy" />
+        <picture>
+          <source :srcset="`${$base}projects-mobile/n100/6.webp 900w, ${$base}projects-webp/n100/6.webp 1800w`" sizes="(max-width:768px) 100vw, 50vw" type="image/webp" />
+          <img :src="`${$base}projects-optimized/n100/6.jpg`" alt="" loading="lazy" />
+        </picture>
       </div>
     </section>
 
@@ -57,7 +72,10 @@
     <!-- ── Hero banner (sticky, revealed behind content) ── -->
     <section class="pp-banner" ref="bannerEl">
       <div class="pp-banner-img rv rv-img" ref="bannerImgEl">
-        <img :src="`${$base}projects-optimized/afi/3.jpg`" alt="" loading="lazy" />
+        <picture>
+          <source :srcset="`${$base}projects-mobile/afi/3.webp 900w, ${$base}projects-webp/afi/3.webp 1800w`" sizes="100vw" type="image/webp" />
+          <img :src="`${$base}projects-optimized/afi/3.jpg`" alt="" loading="lazy" />
+        </picture>
         <p class="pp-banner-text" v-html="t('pp.banner.text')"></p>
       </div>
     </section>
